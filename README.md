@@ -1,21 +1,22 @@
 # README #
 
-This README would normally document whatever steps are necessary to get your application up and running.
 
 ### What is this repository for? ###
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+* TDSoft base dev env
+* v1.0.0.
 
 ### How do I get set up? ###
 
 * Summary of set up
 * Configuration
 * Dependencies
+
 * Database configuration
 * How to run tests
+test:js
 * Deployment instructions
+build:prod
 
 ### Contribution guidelines ###
 
@@ -26,4 +27,3 @@ This README would normally document whatever steps are necessary to get your app
 ### Who do I talk to? ###
 
 * Repo owner or admin
-* Other community or team contact
