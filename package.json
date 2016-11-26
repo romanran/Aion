@@ -1,0 +1,25 @@
+{
+  "name": "tdsoft_aion",
+  "version": "1.0.0",
+  "description": "base dev build tool",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://bitbucket.org/RomanRanniew/tdsoft_aion.git"
+  },
+  "author": "TDSoft",
+  "license": "BSD-Protection",
+  "homepage": "https://bitbucket.org/RomanRanniew/tdsoft_aion#readme",
+  "devDependencies": {
+    "hammerjs": "^2.0.8",
+    "jquery": "^3.1.1",
+    "jquery-hammerjs": "^2.0.0",
+    "jquery-match-height": "^0.7.0",
+    "lodash": "^4.17.2",
+    "malihu-custom-scrollbar-plugin": "^3.1.5",
+    "slick": "^1.12.2"
+  }
+}
