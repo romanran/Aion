@@ -1,0 +1,44 @@
+html{
+	overflow: auto;
+	&.noscroll{
+		overflow-y: hidden @i;
+	}
+}
+body{
+}
+
+
+strong {
+	font-weight: bold;
+}
+
+.full-h {
+	height: 100%;
+}
+
+.full-w {
+	width: 100%;
+}
+
+.middle {
+	vertical-align: middle;
+}
+.separate {
+	margin-left: @sep;
+	margin-right: @sep;
+}
+
+.separator {
+	width: @separator;
+	display: inline-block;
+}
+
+.show-scroll {
+	overflow: auto;
+}
+select::-ms-expand {
+	display: none;
+}
+.zero-margin{
+	margin: 0!important;
+}
