@@ -14,11 +14,29 @@
   "license": "BSD-Protection",
   "homepage": "https://bitbucket.org/RomanRanniew/tdsoft_aion#readme",
   "devDependencies": {
+    "beepbeep": "^1.2.0",
+    "browser-sync": "^2.18.2",
+    "less": "^2.7.1",
+    "less-plugin-autoprefix": "^1.5.1",
+    "less-plugin-clean-css": "^1.5.1",
+    "lodash": "^4.17.2",
+    "minimatch": "^3.0.3",
+    "node-notifier": "^4.6.1",
+    "path": "^0.12.7",
+    "postcss": "^5.2.6",
+    "postcss-size": "^1.0.0",
+    "postcss-sprites": "^4.1.0",
+    "strip-debug": "^1.1.1",
+    "svgmin": "^0.1.0",
+    "svgstore": "^1.1.0",
+    "tslint": "^4.0.2",
+    "typescript": "^2.0.10"
+  },
+  "dependencies": {
     "hammerjs": "^2.0.8",
     "jquery": "^3.1.1",
     "jquery-hammerjs": "^2.0.0",
     "jquery-match-height": "^0.7.0",
-    "lodash": "^4.17.2",
     "malihu-custom-scrollbar-plugin": "^3.1.5",
     "slick": "^1.12.2"
   }
