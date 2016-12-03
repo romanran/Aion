@@ -2,13 +2,28 @@
   "name": "tdsoft_aion",
   "version": "1.0.0",
   "description": "base dev build tool",
-  "main": "index.js",
+  "watch": {
+    "build:ts": {
+      "patterns": "TS",
+      "extensions": "js,ts"
+    },
+    "build:less": {
+      "patterns": "LESS",
+      "extensions": "less,css"
+    }
+  },
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "start": "npm run bs:start & npm run watch",
+    "bs:start": "browser-sync start -c=\"./bin/bs-config.js\" ",
+    "bs:stream": "browser-sync reload",
+    "build:less": "./bin/build-less",
+    "build:ts": "./bin/build-ts",
+    "watch": "npm-watch"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://bitbucket.org/RomanRanniew/tdsoft_aion.git"
+    "url": "https://bitbucket.org/RomanRanniew/tdsoft_aion.git"
   },
   "author": "TDSoft",
   "license": "BSD-Protection",
@@ -38,6 +53,9 @@
     "jquery-hammerjs": "^2.0.0",
     "jquery-match-height": "^0.7.0",
     "malihu-custom-scrollbar-plugin": "^3.1.5",
+    "node-cmd": "^1.1.1",
+    "npm-watch": "^0.1.6",
+    "postcss-cli": "^2.6.0",
     "slick": "^1.12.2"
   }
 }
