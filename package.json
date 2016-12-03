@@ -14,11 +14,14 @@
   },
   "scripts": {
     "test": "test",
+    "lessc": "lessc",
+    "ts": "typescript",
+    "postcss": "postcss",
     "start": "npm run bs:start & npm run watch",
-    "bs:start": "browser-sync start -c=\"./bin/bs-config.js\" ",
+    "bs:start": "browser-sync start -c=\"bin/bs-config.js\" ",
     "bs:stream": "browser-sync reload",
-    "build:less": "./bin/build-less",
-    "build:ts": "./bin/build-ts",
+    "build:less": "node bin/build-less",
+    "build:ts": "node bin/build-ts",
     "watch": "npm-watch"
   },
   "repository": {
