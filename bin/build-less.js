@@ -1,13 +1,15 @@
 console.log("---- POSTCSS/LESS build initialized ----");
-var exec = require('child_process').exec;
-const notifier = require('node-notifier');
-var build_less = 'lessc --include-path=LESS -sm=on --autoprefix --clean-css custom.less | postcss -c=postcss_opts. > ../../dist/css/ postcss';
-
-exec(build_less, function(error, stdout, stderr) {
-	if(stdout.length){
-		console.log(stdout);
-		var notify = 'notify -t \"LESS build error\" -m \"'+stdout+'\" -s';
-		exec(notify, function(error, stdout, stderr) {
-		});
-	}
+var fs = require('fs');
+var main = require("../bin/main.js");
+var glob = require("glob");
+var cli = require('cli'), options = cli.parse();
+cli.enable("glob");
+glob("LESS/*.less", function (er, files) {
+	files.forEach(file => {
+		var dest_file= file.substring( file.lastIndexOf("/")+1, file.lastIndexOf("."));
+		console.log(dest_file);
+		var build_less = 'lessc '+file+' ../dist/css/'+dest_file+'.css';
+		main.runCmd(build_less);
+//		cli.exec(build_less);
+	});
 });
