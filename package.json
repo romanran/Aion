@@ -14,6 +14,7 @@
   },
   "scripts": {
     "test": "test",
+    "lessc-each": "lessc-each",
     "lessc": "lessc",
     "ts": "typescript",
     "postcss": "postcss",
@@ -23,6 +24,7 @@
     "bs:stream": "browser-sync reload",
     "build:less": "node bin/build-less",
     "build:ts": "node bin/build-ts",
+    "lint:less": "node bin/lint-less",
     "watch": "npm-watch"
   },
   "repository": {
@@ -47,8 +49,8 @@
     "path": "^0.12.7",
     "postcss": "^5.2.6",
     "postcss-size": "^1.0.0",
-    "postcss-sprites": "^4.1.0",
     "strip-debug": "^1.1.1",
+    "stripcolorcodes": "^0.1.0",
     "svgmin": "^0.1.0",
     "svgstore": "^1.1.0",
     "tslint": "^4.0.2",

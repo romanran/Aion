@@ -1,17 +1,3 @@
 {
-  "use": [
-    "autoprefixer",
-    "postcss-import",
-    "postcss-simple-vars",
-    "postcss-extend",
-    "postcss-nested",
-    "postcss-mixins"
-  ],
-  "input": "css/main.css",
-  "output": "public/main.css",
-  "local-plugins": true,
-  "watch": true,
-  "autoprefixer": {
-    "browsers": "> 5%"
-  }
+	"use": ["postcss-size"]
 }

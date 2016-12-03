@@ -1,0 +1,4 @@
+
+> tdsoft_aion@1.0.0 glob C:\wamp64\www\tdsoft_phanes\wp_content\themes\base_theme\src
+> glob "LESS/*.less" "%file"
+

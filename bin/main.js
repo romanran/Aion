@@ -1,24 +1,26 @@
 var nrc = require('node-run-cmd');
-
+var notifier = require('node-notifier');
+var stripColorCodes = require('stripcolorcodes');
 var deb = function(s){console.log(s)};
+var glob = require("glob");
 (function(){
 	TDS = {
-		done: function(data) {
-		   console.log("Command done");
-		},
-		failure: function(err){
-			console.log(err);
-			runCmd("notify -m \"Error running script\" " );
-			process.exit(0);
+		failure: function(file, id, err){
+//			console.log(err);
+			notifier.notify({
+				title:"Error in "+id+" for "+file+": ",
+				message: stripColorCodes(err)
+			});
 		},
 	};
 	return TDS;
 })();
-var nrc_opts = {shell: true, onError: TDS.failure, onDone: TDS.done};
-function runCmd(cmd){
-	console.log(cmd);
-	nrc.run(cmd, nrc_opts);
+
+function runCmd(cmd, id="build", file=""){
+	nrc.run(cmd, {shell: true, verbose: true, onError: TDS.failure.bind(this, file, id)});
 }
 module.exports={
-	runCmd: runCmd
+	runCmd: runCmd,
+	glob: glob,
+	deb: deb
 }
