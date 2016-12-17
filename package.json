@@ -44,11 +44,15 @@
     "less-plugin-clean-css": "^1.5.1",
     "lodash": "^4.17.2",
     "minimatch": "^3.0.3",
+    "node-cmd": "^1.1.1",
     "node-notifier": "^4.6.1",
     "node-run-cmd": "^1.0.1",
+    "npm-watch": "^0.1.6",
     "path": "^0.12.7",
     "postcss": "^5.2.6",
+    "postcss-cli": "^2.6.0",
     "postcss-size": "^1.0.0",
+    "postcss-sprites": "^4.1.1",
     "strip-debug": "^1.1.1",
     "stripcolorcodes": "^0.1.0",
     "svgmin": "^0.1.0",
@@ -62,9 +66,6 @@
     "jquery-hammerjs": "^2.0.0",
     "jquery-match-height": "^0.7.0",
     "malihu-custom-scrollbar-plugin": "^3.1.5",
-    "node-cmd": "^1.1.1",
-    "npm-watch": "^0.1.6",
-    "postcss-cli": "^2.6.0",
     "slick": "^1.12.2"
   }
 }
