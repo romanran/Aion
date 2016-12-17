@@ -23,6 +23,7 @@
     "bs:start": "browser-sync start -c=\"bin/bs-config.js\" ",
     "bs:stream": "browser-sync reload",
     "build:less": "node bin/build-less",
+    "build:sprites": "node bin/sprites",
     "build:ts": "node bin/build-ts",
     "lint:less": "node bin/lint-less",
     "watch": "npm-watch"
@@ -38,6 +39,7 @@
     "beepbeep": "^1.2.0",
     "browser-sync": "^2.18.2",
     "cli": "^1.0.1",
+    "fs": "0.0.1-security",
     "glob": "^7.1.1",
     "less": "^2.7.1",
     "less-plugin-autoprefix": "^1.5.1",

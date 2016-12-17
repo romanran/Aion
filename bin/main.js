@@ -12,12 +12,21 @@ var glob = require("glob");
 				message: stripColorCodes(err)
 			});
 		},
+		done: function(callback, file, err){
+			if(typeof callback == "function"){
+				callback(file);
+			}
+			err == 0 ? console.log("success") : console.log("failure");
+		},
+		log: function(data){
+			console.log(data);
+		}
 	};
 	return TDS;
 })();
 
-function runCmd(cmd, id="build", file=""){
-	nrc.run(cmd, {shell: true, verbose: true, onError: TDS.failure.bind(this, file, id)});
+function runCmd(cmd, id="build", file="", callback=""){
+	nrc.run(cmd, {shell: true, verbose: false, onData: TDS.log, onError: TDS.failure.bind("", file, id), onDone: TDS.done.bind("", callback, file)});
 }
 module.exports={
 	runCmd: runCmd,
