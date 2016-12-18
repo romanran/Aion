@@ -1,1 +1,2 @@
-console.log("---- TypeScript build initialized ----");
+require("./base.js")();
+console.log("---- TypeScript build initialized ----".red);

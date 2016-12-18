@@ -1,21 +1,19 @@
-console.log("---- POSTCSS/LESS build initialized ----");
-//var updateRule = require('../node_modules/postcss-sprites').updateRule;
-//var cli = require('cli'), options = cli.parse();
-var main = require("../bin/main.js");
-var timers = [];
-var path = require('path');
-var fs 	= require('fs');
-var stopTimer = function(file) {
-	console.timeEnd( "exec time for "+file );
-};
+require("./base.js")();
+
 var less = require('less');
 var postcss = require('postcss');
+//var colors = require('colors');
 var sprites = require('postcss-sprites');
 var updateRule = require('postcss-sprites/lib/core').updateRule;
 var pluginLoader = new less.PluginLoader(less),
 	plugin,
 	plugins = [];
+var timers = [];
 var plugins_list = ["less-plugin-clean-css", "less-plugin-autoprefix", 'less-plugin-glob', 'less-plugin-functions'];
+
+var stopTimer = function(file) {
+	console.timeEnd( "exec time for "+file );
+};
 
 for(i in plugins_list){
 	plugin = pluginLoader.tryLoadPlugin(plugins_list[i], "");
@@ -85,7 +83,8 @@ var opts = {
 	}
 }
 
-main.glob("LESS/*.less", function (er, files) {
+console.log("---- POSTCSS/LESS build initialized ----".underline.cyan);
+glob("LESS/*.less", function (er, files) {
 	files.forEach(file => {
 		var dest_file= file.substring( file.lastIndexOf("/")+1, file.lastIndexOf("."));
 		timers.push("exec time for "+dest_file);
@@ -121,12 +120,35 @@ main.glob("LESS/*.less", function (er, files) {
 							if(err) {
 								return console.log(err);
 							}
+							console.log(dest_file+" ✔".green);
 							stopTimer(dest_file);
+							if(parseInt(output.messages[0].text) > 0){
+								console.log((output.messages[0].text).italic.green);
+							}
 						});
 					});
 				},
-				function(error) {
-					console.log(error);
+				function(err) {
+					console.log(dest_file+" x".red);
+					beep(2);
+					try{
+						var filename = typeof err.filename!=='undefined' ? err.filename.split("\\") : err.file.split("\\");
+						filename = filename.splice((filename.length - 2), 2).join("/");
+						var err_A = [];
+						if(typeof err.line !=='undefined')err_A.push("\nline:"+err.line);
+						if(typeof err.extract !=='undefined')err_A.push("\nextract:"+err.extract);
+						if(typeof err.reason !=='undefined')err_A.push("\nreason:"+err.reason);
+						if(typeof err.message !=='undefined')err_A.push("\nreason:"+err.message);
+						var errstr="";
+						for(i in err_A){
+							errstr+=err_A[i];
+						}
+						console.log(((filename).bold+errstr).red);
+					}catch(e){console.log("Error in build. Report this to Roman:".red,e);}
+					notifier.notify({
+						title:"Error in LESS build for "+filename+": ",
+						message: err.message
+					});
 				});
 	});
 });

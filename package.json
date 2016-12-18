@@ -8,23 +8,32 @@
       "extensions": "js,ts"
     },
     "build:less": {
-      "patterns": "LESS",
+      "patterns": [
+        "LESS"
+      ],
       "extensions": "less,css"
+    },
+    "restart": {
+      "patterns": [
+        "bin",
+        "./"
+      ],
+      "extensions": "js,json"
     }
   },
   "scripts": {
     "test": "test",
     "lessc": "lessc",
-    "ts": "typescript",
+    "tsc": "tsc",
+    "tslint": "tslint",
     "postcss": "postcss",
     "notify": "node-notifier",
     "start": "npm run bs:start & npm run watch",
+    "restart": "npm start",
     "bs:start": "browser-sync start -c=\"bin/bs-config.js\" ",
     "bs:stream": "browser-sync reload",
     "build:less": "node bin/build-less",
-    "build:sprites": "node bin/sprites",
-    "build:ts": "node bin/build-ts",
-    "lint:less": "node bin/lint-less",
+    "build:ts": "ts",
     "watch": "npm-watch"
   },
   "repository": {
@@ -38,6 +47,7 @@
     "beepbeep": "^1.2.0",
     "browser-sync": "^2.18.2",
     "cli": "^1.0.1",
+    "colors": "^1.1.2",
     "fs": "0.0.1-security",
     "glob": "^7.1.1",
     "less": "^2.7.1",
