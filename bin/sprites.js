@@ -81,6 +81,7 @@ stdin.on('end', function() {
 		process.env.zTDS={messages:result.messages};
 		process.env.zspriter_message=result.messages;
 		process.stdout.write(result.css);
+		process.stdout.end(result.messages);
 //		m.runCmd("echo kupe");
 //		process.on('exit', function(code) {
 //		   console.log(result.error);

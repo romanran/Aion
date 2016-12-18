@@ -3,7 +3,7 @@
 
 ### What is this repository for? ###
 
-* TDSoft base dev env
+* TDSoft base dev env and runner
 * v1.0.0.
 
 ### How do I get set up? ###

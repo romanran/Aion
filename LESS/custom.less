@@ -3,24 +3,18 @@
 @import (less) "reset/_reset.css";
 //libraries
 //--settings(colors, variables)
+@import	"imports/base/font_faces";
 @import "imports/base/colors";
 @import	"imports/base/variables";
-@import	"imports/base/font_faces";
-@import	"imports/base/elements";
+@import	"imports/base/**";
 //--tools
 @import	"imports/tools/mixins";
 @import	"imports/tools/responsive";
 @import	"imports/tools/animations";
 //-- global objects
-@import	"imports/objects/containers";
-@import	"imports/objects/buttons.less";
-@import	"imports/objects/text.less";
-@import	"imports/objects/inputs";
-@import	"imports/objects/filters";
+@import	"imports/objects/**";
 //specific pages
 
-@import	"imports/layout/header";
-@import	"imports/layout/footer";
-@import	"imports/layout/single";
+@import	"imports/layout/**";
 
 @import	"imports/trumps";
