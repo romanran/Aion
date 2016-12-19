@@ -7,6 +7,6 @@
     "outFile": "../dist/all.min.js"
   },
   "files":[
-    "./TS/main/main.ts"
+    "./"
   ]
 }

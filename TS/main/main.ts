@@ -1,1 +1,2 @@
-import $ from "JQuery";
+import "../tools/utils";
+asd;

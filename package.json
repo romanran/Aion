@@ -2,9 +2,12 @@
   "name": "tdsoft_aion",
   "version": "1.0.0",
   "description": "base dev build tool",
+  "private": true,
   "watch": {
     "build:ts": {
-      "patterns": "TS",
+      "patterns": [
+        "TS"
+      ],
       "extensions": "js,ts"
     },
     "build:less": {
@@ -33,7 +36,9 @@
     "bs:start": "browser-sync start -c=\"bin/bs-config.js\" ",
     "bs:stream": "browser-sync reload",
     "build:less": "node bin/build-less",
-    "build:ts": "ts",
+    "prebuild:ts": "tslint --fix --force TS/**/*.*",
+    "lint:ts": "node bin/tslint",
+    "build:ts": "tsc --out temp/temp.js --module commonjs ./TS/main/main.ts | node bin/build-ts",
     "watch": "npm-watch"
   },
   "repository": {
@@ -44,6 +49,7 @@
   "license": "BSD-Protection",
   "homepage": "https://bitbucket.org/RomanRanniew/tdsoft_aion#readme",
   "devDependencies": {
+    "babel-cli": "^6.18.0",
     "beepbeep": "^1.2.0",
     "browser-sync": "^2.18.2",
     "cli": "^1.0.1",
@@ -71,7 +77,8 @@
     "svgmin": "^0.1.0",
     "svgstore": "^1.1.0",
     "tslint": "^4.0.2",
-    "typescript": "^2.0.10"
+    "typescript": "^2.0.10",
+    "uglify-js": "^2.7.5"
   },
   "dependencies": {
     "hammerjs": "^2.0.8",

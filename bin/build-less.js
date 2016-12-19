@@ -11,10 +11,6 @@ var pluginLoader = new less.PluginLoader(less),
 var timers = [];
 var plugins_list = ["less-plugin-clean-css", "less-plugin-autoprefix", 'less-plugin-glob', 'less-plugin-functions'];
 
-var stopTimer = function(file) {
-	console.timeEnd( "exec time for "+file );
-};
-
 for(i in plugins_list){
 	plugin = pluginLoader.tryLoadPlugin(plugins_list[i], "");
 	if (plugin) {
