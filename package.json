@@ -25,6 +25,7 @@
     }
   },
   "scripts": {
+    "postinstall": "node bin bin/postinstall",
     "test": "test",
     "lessc": "lessc",
     "tsc": "tsc",

@@ -2,7 +2,6 @@ require("./base.js")();
 
 var less = require('less');
 var postcss = require('postcss');
-//var colors = require('colors');
 var sprites = require('postcss-sprites');
 var updateRule = require('postcss-sprites/lib/core').updateRule;
 var pluginLoader = new less.PluginLoader(less),
@@ -79,7 +78,7 @@ var opts = {
 	}
 }
 
-console.log("---- POSTCSS/LESS build initialized ----".underline.cyan);
+console.log("  ---- POSTCSS/LESS build initialized ----   \n".bgYellow.black);
 glob("LESS/*.less", function (er, files) {
 	files.forEach(file => {
 		var dest_file= file.substring( file.lastIndexOf("/")+1, file.lastIndexOf("."));
@@ -121,6 +120,7 @@ glob("LESS/*.less", function (er, files) {
 							if(parseInt(output.messages[0].text) > 0){
 								console.log((output.messages[0].text).italic.green);
 							}
+							console.log(" ");
 						});
 					});
 				},
