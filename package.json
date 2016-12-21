@@ -79,7 +79,8 @@
     "svgstore": "^1.1.0",
     "tslint": "^4.0.2",
     "typescript": "^2.0.10",
-    "uglify-js": "^2.7.5"
+    "uglify-js": "^2.7.5",
+    "util": "^0.10.3"
   },
   "dependencies": {
     "hammerjs": "^2.0.8",

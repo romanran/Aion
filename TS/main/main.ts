@@ -1,7 +1,7 @@
 import "../tools/utils";
 const s = undefinedFun();
 wrongjson : {
-"test : ";string;",;;;;;
+"test : ";string;",;;;;;;;
 "var"; : "val";
 };
 let g = 5;
