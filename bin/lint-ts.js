@@ -5,9 +5,9 @@ const config_O = require("tslint/lib/configuration");
 
 let args = process.argv.slice(2);
 let prod_i = args.indexOf("prod");
-let prod_temp = args[prod_i+1];
-
+let prod_temp = (args[prod_i+1] === "true");
 const prod = typeof(prod_temp) === "undefined" ? false : prod_temp;
+
 const fileName = "TS/**/*.*";
 const configuration = {
 	rules: {
@@ -19,6 +19,7 @@ const configuration = {
 	"rulesDirectory": ["node_modules/tslint/lib/rules"]
 };
 const options = {
+	fix: false,
 	formatter: "json",
 	rulesDirectory: "/node_modules/tslint/lib/rules/",
 	formattersDirectory: "/node_modules/tslint/lib/formatters/"
@@ -32,10 +33,13 @@ const lint_A = program.getSemanticDiagnostics();
 glob(fileName, function (er, files) {
 	let configLoad = "";
 	let file_contents = "";
+	if( prod ){
+		console.log("loading prod cofiguration...");
+	}
+
 	files.forEach(file => {
 		file_contents = fs.readFileSync(file, "utf8");
 		if( prod ){
-			console.log("loading prod cofiguration...");
 			configLoad = config_O.findConfiguration("./bin/tsconfig_prod.json", file);
 		}else{
 			configLoad = config_O.findConfiguration("./bin/tsconfig_dev.json", file);
@@ -43,8 +47,16 @@ glob(fileName, function (er, files) {
 		linter.lint(file, file_contents, configLoad.results);
 	});
 	const lintResult = linter.getResult();
-
-	if( lintResult.failureCount > 0){
+	//check auto fixes
+	if( lintResult.fixes.length > 0){
+		console.log( ("Fixed "+lintResult.fixes.length+" problems:").green );
+		for( let i in lintResult.fixes){
+			console.log( lintResult.fixes[i].failure+" in "+lintResult.fixes[i].fileName );
+		}
+		fs.writeFileSync("jslint.log", util.inspect( lintResult.failures ), { encoding: "utf-8" });
+	}
+	//check fails
+	if( lintResult.failureCount.length > 0){
 		beep(2);
 		console.log( ("Errors count: "+lintResult.failureCount+" x").red );
 		for( let i in lintResult.failures){
@@ -52,23 +64,11 @@ glob(fileName, function (er, files) {
 			console.log( ("Filename: "+res.fileName+"\n"+res.failure).yellow );
 			console.log( "starting "+("line:"+res.startPosition.lineAndCharacter.line+" pos:"+ res.startPosition.lineAndCharacter.character).bold.cyan );
 			console.log( "ending "+("line:"+res.endPosition.lineAndCharacter.line+" pos:"+ res.endPosition.lineAndCharacter.character+"\n").bold.cyan );
-			if( typeof(res.fix) !== "undefined" ){
-				console.log( "Possible fix:"+res.fix );
-			}
 		}
-		fs.writeFileSync("jslint.log", util.inspect( lintResult.failures ), { encoding: "utf-8" });
 		return 0;
+		rocess.exit(0);
 	}else{
-		console.log( ("No errors! ✔").green );
+		console.log( ("Semantic check! ✔").green );
 	}
 });
 
-if (lint_A.length > 0) {
-	console.log("Semantics test: \n".bgGreen.inverse);
-	for (let i in lint_A) {
-		let filename = lint_A[i].file.fileName.split("\\");
-		filename = filename.splice((filename.length - 2), 2).join("/");
-		let text = "filename: " + filename.green + "\n Message: " + lint_A[i].messageText.yellow + " \n > " + lint_A[i].file.text;
-		console.log(text);
-	}
-}

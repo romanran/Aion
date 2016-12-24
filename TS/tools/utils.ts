@@ -5,4 +5,4 @@ namespace td {
     export function err(msg) {
         console.error(msg);
     }
-}
+};

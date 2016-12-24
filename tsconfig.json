@@ -1,0 +1,17 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "module": "system",
+    "target": "es5",
+    "sourceMap": true,
+    "outFile": "temp/temp.js"
+  },
+  "filesGlob": [
+    "./TS/**/*.ts"
+  ],
+  "files": [
+    "./TS/main/main.ts",
+    "./TS/tools/mutationObserver.ts",
+    "./TS/tools/utils.ts"
+  ]
+}

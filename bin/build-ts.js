@@ -1,11 +1,17 @@
 //--out /dev/stdout
 require("./base.js")();
 var UglifyJS = require("uglify-js");
-console.log("   ---- TypeScript build initialized ----   \n".bgCyan.black);
+var td = require("./main.js");
+console.log("   ---- TypeScript build initialized ----   ".bgCyan.black);
 console.time("build time");
 var stdin = process.openStdin();
 var data = "";
+//td.runCmd("tsc --outFile temp/temp.js --allowJs --module commonjs --pretty | exit");
 var writeJS = function() {
+	if(data.length > 0){
+		console.log(data);
+		process.exit(0);
+	}
 	var result = UglifyJS.minify("temp/temp.js", {
 		mangle: true,
 		compress: {
@@ -17,7 +23,7 @@ var writeJS = function() {
 	});
 	fs.writeFile('../dist/js/all.min.js', result.code, function(e){
 		if( e !== null){
-			console.log((e+"").red);
+			console.log((e).red);
 			if(e.syscall === 'open'){
 				console.log("creating directory".yellow);
 				fs.existsSync("../dist/js") || fs.mkdirSync("../dist/js");

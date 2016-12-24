@@ -78,7 +78,7 @@ var opts = {
 	}
 }
 
-console.log("  ---- POSTCSS/LESS build initialized ----   \n".bgYellow.black);
+console.log("  ---- POSTCSS/LESS build initialized ----   ".bgYellow.black);
 glob("LESS/*.less", function (er, files) {
 	files.forEach(file => {
 		var dest_file= file.substring( file.lastIndexOf("/")+1, file.lastIndexOf("."));
