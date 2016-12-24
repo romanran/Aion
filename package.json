@@ -2,30 +2,51 @@
   "name": "tdsoft_aion",
   "version": "1.0.0",
   "description": "base dev build tool",
+  "private": true,
   "watch": {
     "build:ts": {
-      "patterns": "TS",
+      "patterns": [
+        "TS"
+      ],
       "extensions": "js,ts"
     },
     "build:less": {
-      "patterns": "LESS",
+      "patterns": [
+        "LESS"
+      ],
       "extensions": "less,css"
+    },
+    "restart": {
+      "patterns": [
+        "bin",
+        "./package.json",
+        "./tsconfig.json"
+      ],
+      "extensions": "js,json"
     }
   },
   "scripts": {
+    "postinstall": "node bin bin/postinstall",
     "test": "test",
-    "lessc-each": "lessc-each",
+    "para": "parallelshell",
     "lessc": "lessc",
-    "ts": "typescript",
+    "browser-sync": "browser-sync",
+    "tsc": "tsc",
+    "tscg": "tscg",
+    "tslint": "tslint",
     "postcss": "postcss",
     "notify": "node-notifier",
-    "start": "npm run bs:start & npm run watch",
-    "bs:start": "browser-sync start -c=\"bin/bs-config.js\" ",
-    "bs:stream": "browser-sync reload",
+    "start": "npm run para \"npm run bs:start\" \"npm run watch\"",
+    "restart": "npm start",
+    "bs:start": "npm run browser-sync start -c=\"bin/bs-config.js\" ",
+    "bs:stream": "npm run browser-sync reload",
     "build:less": "node bin/build-less",
-    "build:ts": "node bin/build-ts",
-    "lint:less": "node bin/lint-less",
-    "watch": "npm-watch"
+    "prebuild:ts": "npm run lint:ts",
+    "lint:ts": "node bin/lint-ts",
+    "build:ts": "tsc --allowJs | node bin/build-ts",
+    "watch": "npm run para \"npm run watch:less\" \"npm run watch:ts\" ",
+    "watch:ts": "chokidar \"TS/**/*.ts\" -c \"npm run build:ts\"",
+    "watch:less": "chokidar \"LESS/**/*.*\" -c \"npm run build:less\""
   },
   "repository": {
     "type": "git",
@@ -35,19 +56,24 @@
   "license": "BSD-Protection",
   "homepage": "https://bitbucket.org/RomanRanniew/tdsoft_aion#readme",
   "devDependencies": {
+    "babel-cli": "^6.18.0",
     "beepbeep": "^1.2.0",
     "browser-sync": "^2.18.2",
+    "chokidar-cli": "^1.2.0",
     "cli": "^1.0.1",
+    "colors": "^1.1.2",
+    "fs": "0.0.1-security",
     "glob": "^7.1.1",
     "less": "^2.7.1",
     "less-plugin-autoprefix": "^1.5.1",
     "less-plugin-clean-css": "^1.5.1",
-    "lodash": "^4.17.2",
+    "less-plugin-functions": "0.0.2",
+    "less-plugin-glob": "^1.1.1",
     "minimatch": "^3.0.3",
     "node-cmd": "^1.1.1",
     "node-notifier": "^4.6.1",
     "node-run-cmd": "^1.0.1",
-    "npm-watch": "^0.1.6",
+    "parallelshell": "^2.0.0",
     "path": "^0.12.7",
     "postcss": "^5.2.6",
     "postcss-cli": "^2.6.0",
@@ -58,13 +84,18 @@
     "svgmin": "^0.1.0",
     "svgstore": "^1.1.0",
     "tslint": "^4.0.2",
-    "typescript": "^2.0.10"
+    "typescript": "^2.0.10",
+    "typescript-with-globs": "^0.1.4",
+    "uglify-js": "^2.7.5",
+    "util": "^0.10.3"
   },
   "dependencies": {
+    "@types/lodash": "^4.14.44",
     "hammerjs": "^2.0.8",
     "jquery": "^3.1.1",
     "jquery-hammerjs": "^2.0.0",
     "jquery-match-height": "^0.7.0",
+    "lodash": "^4.17.3",
     "malihu-custom-scrollbar-plugin": "^3.1.5",
     "slick": "^1.12.2"
   }

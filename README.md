@@ -3,20 +3,30 @@
 
 ### What is this repository for? ###
 
-* TDSoft base dev env
+* TDSoft base dev env and runner
 * v1.0.0.
 
 ### How do I get set up? ###
 
 * Summary of set up
 * Configuration
+   npm i
+   npm i chokidar -g  //for watching files it needs to be installed globally
 * Dependencies
+
+  lodash
+
+  slick
+
+  hammerj
 
 * Database configuration
 * How to run tests
-test:js
+
+   test:js
+
 * Deployment instructions
-build:prod
+build:* --prod true
 
 ### Contribution guidelines ###
 
