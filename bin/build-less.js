@@ -1,25 +1,12 @@
 require("./base.js")();
 
-var less = require('less');
+var chokidar = require('chokidar');
 var postcss = require('postcss');
 var sprites = require('postcss-sprites');
+var postcss_size = require('postcss-size');
 var updateRule = require('postcss-sprites/lib/core').updateRule;
-var pluginLoader = new less.PluginLoader(less),
-	plugin,
-	plugins = [];
-var timers = [];
-var plugins_list = ["less-plugin-clean-css", "less-plugin-autoprefix", 'less-plugin-glob', 'less-plugin-functions'];
-
-for(i in plugins_list){
-	plugin = pluginLoader.tryLoadPlugin(plugins_list[i], "");
-	if (plugin) {
-		plugins.push(plugin);
-	} else {
-		console.error("Unable to load plugin " + name +
-			" please make sure that it is installed under or at the same level as less");
-		process.exitCode = 1;
-	}
-}
+const plugins_list = ["less-plugin-clean-css", "less-plugin-autoprefix", 'less-plugin-glob', 'less-plugin-functions'];
+const timers = [];
 
 var less_options = "";
 var opts = {
@@ -76,75 +63,137 @@ var opts = {
 	spritesmith: {
 		padding: 5
 	}
-}
+};
+const watcher_opts = {
+	ignoreInitial: true,
+	awaitWriteFinish:{
+		stabilityThreshold: 50,//(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
+		pollInterval:20 // (default: 100). File size polling interval.
+	}
+};
+const compile_files = [];
+const compilers = [];
+const plugins = [];
 
-console.log("  ---- POSTCSS/LESS build initialized ----   ".bgYellow.black);
+var dataReady = function(file, dest_file, err, data){
+	if(err!==null){
+		console.warn(err);
+		return 0;
+	}
+	let less_options = {
+		filename: path.resolve(file),
+		depends: false,
+		compress: true,
+		max_line_len: -1,
+		lint: false,
+		paths: [],
+		color: true,
+		strictImports: false,
+		insecure: false,
+		rootpath: '',
+		relativeUrls: false,
+		ieCompat: true,
+		strictMath: true,
+		strictUnits: false,
+		globalVars: null,
+		modifyVars: null,
+		urlArgs: '',
+		plugins: plugins,
+		sourceMap: {}
+	};
+	compilers[file].render(data, less_options)
+		.then(function(output) {
+		postcss([sprites(opts), postcss_size]).process(output.css, { from: 'LESS/'+dest_file+'.less', to: '../dist/css/'+dest_file+'.css',  map: { inline: false, prev: output.map } })
+			.then(function (output) {
+			if ( output.map ) fs.writeFileSync("../dist/css/"+dest_file+".min.css.map", output.map);
+			fs.writeFile("../dist/css/"+dest_file+".min.css", output.css, function(err) {
+				if(err) {
+					return console.log(err);
+				}
+				console.log(dest_file+" ✔".green);
+				stopTimer(dest_file);
+				if(parseInt(output.messages[0].text) > 0){
+					console.log((output.messages[0].text).italic.green);
+				}
+				console.log(" ");
+			});
+		});
+	},
+	  function(err) {
+		console.log(dest_file+" x".red);
+		beep(2);
+		try{
+			var filename = typeof err.filename!=='undefined' ? err.filename.split("\\") : err.file.split("\\");
+			filename = filename.splice((filename.length - 2), 2).join("/");
+			var err_A = [];
+			if(typeof err.line !=='undefined')err_A.push("\nline:"+err.line);
+			if(typeof err.extract !=='undefined')err_A.push("\nextract:"+err.extract);
+			if(typeof err.reason !=='undefined')err_A.push("\nreason:"+err.reason);
+			if(typeof err.message !=='undefined')err_A.push("\nreason:"+err.message);
+			var errstr="";
+			for(i in err_A){
+				errstr+=err_A[i];
+			}
+			console.log(((filename).bold+errstr).red);
+		}catch(e){console.log("Error in build. Report this to Roman:".red,e);}
+		notifier.notify({
+			title:"Error in LESS build for "+filename+": ",
+			message: err.message
+		});
+	});
+};
+
 glob("LESS/*.less", function (er, files) {
-	files.forEach(file => {
-		var dest_file= file.substring( file.lastIndexOf("/")+1, file.lastIndexOf("."));
-		timers.push("exec time for "+dest_file);
-		console.time("exec time for "+dest_file);
+	var cached_files = [];
+	var q = new Promise(function(resolve, reject){
+		let total_files_num = files.length, i = 0;
+		files.forEach(file => {
+			compilers[file] = require('less');
+			compile_files.push(file);
+			fs.readFile(file, 'utf8', function(err, data){
+				i++;
+				cached_files[file] = data;
+				if(i === total_files_num)resolve();
+			});
+		});
+	});
+	q.then(function(){
+		var plugin_loader = new compilers[compile_files[0]].PluginLoader(compilers[compile_files[0]]);
+		for(let i in plugins_list){
+			plugin = plugin_loader.tryLoadPlugin(plugins_list[i], "");
+			if (plugin) {
+				plugins.push(plugin);
+			} else {
+				console.error("Unable to load plugin " + plugin.name +
+							  " please make sure that it is installed under or at the same level as less");
+				continue;
+			}
+		}
 
-		var less_options = {
-				filename: path.resolve(file),
-				depends: false,
-				compress: true,
-				max_line_len: -1,
-				lint: false,
-				paths: [],
-				color: true,
-				strictImports: false,
-				insecure: false,
-				rootpath: '',
-				relativeUrls: false,
-				ieCompat: true,
-				strictMath: true,
-				strictUnits: false,
-				globalVars: null,
-				modifyVars: null,
-				urlArgs: '',
-				plugins: plugins,
-				sourceMap: {}
-			};
-			less.render(fs.readFileSync(file).toString(), less_options)
-				.then(function(output) {
-					postcss([sprites(opts)]).process(output.css, { from: 'LESS/'+dest_file+'.less', to: '../dist/css/'+dest_file+'.css',  map: { inline: false, prev: output.map } })
-					.then(function (output) {
-						if ( output.map ) fs.writeFileSync("../dist/css/"+dest_file+".min.css.map", output.map);
-						fs.writeFile("../dist/css/"+dest_file+".min.css", output.css, function(err) {
-							if(err) {
-								return console.log(err);
-							}
-							console.log(dest_file+" ✔".green);
-							stopTimer(dest_file);
-							if(parseInt(output.messages[0].text) > 0){
-								console.log((output.messages[0].text).italic.green);
-							}
-							console.log(" ");
-						});
+		console.log("Watching files...");
+		var watcher = chokidar.watch('LESS/**/*.*', watcher_opts);
+		watcher.on('all', (e, where) => {
+			where = where.replace(/\\/g, "/");
+			console.log((e.toUpperCase()).bold+" in file "+(where).bold);
+			console.log("  ---- POSTCSS/LESS build initialized ----   ".bgYellow.black);
+
+			compile_files.forEach(file => {
+				var dest_file= file.substring( file.lastIndexOf("/")+1, file.lastIndexOf("."));
+				if(!file.localeCompare(where)){
+					fs.readFile(file, 'utf8', function(err, data){
+						cached_files[file] = data;
+						timers.push("exec time for "+dest_file);
+						console.time("exec time for "+dest_file);
+						dataReady.call(this, file, dest_file, null, cached_files[file]);
 					});
-				},
-				function(err) {
-					console.log(dest_file+" x".red);
-					beep(2);
-					try{
-						var filename = typeof err.filename!=='undefined' ? err.filename.split("\\") : err.file.split("\\");
-						filename = filename.splice((filename.length - 2), 2).join("/");
-						var err_A = [];
-						if(typeof err.line !=='undefined')err_A.push("\nline:"+err.line);
-						if(typeof err.extract !=='undefined')err_A.push("\nextract:"+err.extract);
-						if(typeof err.reason !=='undefined')err_A.push("\nreason:"+err.reason);
-						if(typeof err.message !=='undefined')err_A.push("\nreason:"+err.message);
-						var errstr="";
-						for(i in err_A){
-							errstr+=err_A[i];
-						}
-						console.log(((filename).bold+errstr).red);
-					}catch(e){console.log("Error in build. Report this to Roman:".red,e);}
-					notifier.notify({
-						title:"Error in LESS build for "+filename+": ",
-						message: err.message
-					});
-				});
+				}else{
+					timers.push("exec time for "+dest_file);
+					console.time("exec time for "+dest_file);
+					dataReady.call(this, file, dest_file, null, cached_files[file]);
+				}
+	//			fs.readFile(file, 'utf8', dataReady.bind(this, file, dest_file));
+			});
+		});
+
 	});
 });
