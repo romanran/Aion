@@ -1,6 +1,5 @@
-function buildLess(){
+function watchLess(){
 	require("./base.js")();
-
 	var chokidar = require('chokidar');
 	var postcss = require('postcss');
 	var sprites = require('postcss-sprites');
@@ -8,7 +7,6 @@ function buildLess(){
 	var updateRule = require('postcss-sprites/lib/core').updateRule;
 	const plugins_list = ["less-plugin-clean-css", "less-plugin-autoprefix", 'less-plugin-glob', 'less-plugin-functions'];
 	const timers = [];
-
 	var less_options = "";
 	var opts = {
 		stylesheetPath: '../dist/css',
@@ -144,7 +142,7 @@ function buildLess(){
 		});
 	};
 
-	glob("LESS/*.less", function (er, files) {
+	glob("../src/LESS/*.less", function (er, files) {
 		var cached_files = [];
 		var q = new Promise(function(resolve, reject){
 			let total_files_num = files.length, i = 0;
@@ -171,8 +169,8 @@ function buildLess(){
 				}
 			}
 
-			console.log("Watching files...");
-			var watcher = chokidar.watch('LESS/**/*.*', watcher_opts);
+			console.log("Watching LESS files...".bold);
+			var watcher = chokidar.watch('../src/LESS/**/*.*', watcher_opts);
 			watcher.on('all', (e, where) => {
 				where = where.replace(/\\/g, "/");
 				console.log((e.toUpperCase()).bold+" in file "+(where).bold);
@@ -200,5 +198,5 @@ function buildLess(){
 	});
 }
 module.exports=function(){
-	this.buildLess = buildLess;
+	this.watchLess = watchLess;
 };

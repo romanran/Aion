@@ -1,6 +1,3 @@
-//specify project name url path
-var project_path = "localhost/project_name";
-
 module.exports = {
     "ui": {
         "port": 3001,
@@ -8,10 +5,10 @@ module.exports = {
             "port": 8080
         }
     },
-    "files": ["**", "!node_modules", "../dist", "../**/*.php", "!**/*.*"],
+    "files": ["!node_modules", "../dist", "../**/*.php", "!**/*.*"],
     "watchOptions": {},
     "server": false,
-    "proxy": project_path,
+    "proxy": project.path,
     "port": 3000,
     "middleware": false,
     "serveStatic": [],
@@ -35,16 +32,16 @@ module.exports = {
     "cors": false,
     "xip": false,
     "hostnameSuffix": false,
-    "reloadOnRestart": false,
+    "reloadOnRestart": true,
     "notify": true,
     "scrollProportionally": true,
     "scrollThrottle": 10,
     "scrollRestoreTechnique": "window.name",
     "scrollElements": [],
     "scrollElementMapping": [],
-    "reloadDelay": 0,
-    "reloadDebounce": 200,
-    "reloadThrottle": 20,
+    "reloadDelay": 20,
+    "reloadDebounce": 300,
+    "reloadThrottle": 100,
     "plugins": [],
     "injectChanges": true,
     "startPath": null,
