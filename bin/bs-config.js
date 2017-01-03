@@ -8,7 +8,7 @@ module.exports = {
     "files": ["!node_modules", "../dist", "../**/*.php", "!**/*.*"],
     "watchOptions": {},
     "server": false,
-    "proxy": project.path,
+    "proxy": null,
     "port": 3000,
     "middleware": false,
     "serveStatic": [],

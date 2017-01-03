@@ -1,17 +1,20 @@
 require("./base.js")();
 var project = require("../config.json");
-//var bs_conf = require("./bs-config.js");
+var bs_conf = require("./bs-config.js");
 var stripColorCodes = require('stripcolorcodes');
 var deb = function(s){console.log(s)};
 var bs = require("browser-sync").create();
-//bs.init(bs_conf);
+bs_conf.proxy = project.path;
+bs.init(bs_conf);
 
 require("./watch-less.js")();
 require("./watch-svg.js")();
 require("./watch-img.js")();
+require("./watch-js.js")();
 watchSvg();
 watchLess();
 watchImg();
+watchJs();
 
 const watcher_opts = {
 		ignoreInitial: true,
