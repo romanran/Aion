@@ -1,30 +1,8 @@
 {
   "name": "tdsoft_aion",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "base dev build tool",
   "private": true,
-  "watch": {
-    "build:ts": {
-      "patterns": [
-        "TS"
-      ],
-      "extensions": "js,ts"
-    },
-    "build:less": {
-      "patterns": [
-        "LESS"
-      ],
-      "extensions": "less,css"
-    },
-    "restart": {
-      "patterns": [
-        "bin",
-        "./package.json",
-        "./tsconfig.json"
-      ],
-      "extensions": "js,json"
-    }
-  },
   "scripts": {
     "postinstall": "node bin bin/postinstall",
     "test": "test",
@@ -44,15 +22,11 @@
     "bs:start": "browser-sync start --config bin/bs-config.js ",
     "bs:stream": "browser-sync reload",
     "build:less": "node bin/build-less",
-    "prebuild:ts": "npm run lint:ts",
-    "lint:ts": "node bin/lint-ts",
-    "build:ts": "tsc --allowJs | node bin/build-ts",
     "build:jslibs": "browserify JSLIBS/main.js > ../dist/js/libs.js && uglifyjs ../dist/js/libs.js > ../dist/js/libs.min.js",
-    "watch": "npm run para \"npm run watch:less\" \"npm run watch:ts\" ",
-    "watch:ts": "chokidar \"TS/**/*.ts\" -c \"npm run build:ts\"",
+    "watch": "npm run para \"npm run watch:less\" \"npm run watch:ts\" \"npm run watch:self\" ",
     "watch:less": "npm run build:less",
-    "watch:svg": "chokidar \"SVG/**/*.*\" -c \"node bin/build-svg\" ",
-    "watch:images": "chokidar \"IMG/**/*.*\" -i \"IMG/sprites/**\" -c \"node bin/compress-img\"  "
+    "watch:svg": "chokidar \"../src/SVG/**/*.*\" -c \"node bin/build-svg\" ",
+    "watch:images": "chokidar \"../src/IMG/**/*.*\" -i \"../src/IMG/sprites/**\" -c \"node bin/compress-img\"  "
   },
   "repository": {
     "type": "git",
@@ -66,7 +40,6 @@
     "beepbeep": "^1.2.0",
     "browser-sync": "^2.18.2",
     "browserify": "^13.1.1",
-    "chokidar-cli": "^1.2.0",
     "cli": "^1.0.1",
     "colors": "^1.1.2",
     "fs": "0.0.1-security",
@@ -81,26 +54,20 @@
     "less-plugin-glob": "^1.1.1",
     "minimatch": "^3.0.3",
     "mkdirp": "^0.5.1",
-    "node-cmd": "^1.1.1",
     "node-notifier": "^4.6.1",
-    "node-run-cmd": "^1.0.1",
     "parallelshell": "^2.0.0",
     "path": "^0.12.7",
     "postcss": "^5.2.6",
-    "postcss-cli": "^2.6.0",
     "postcss-size": "^1.0.0",
     "postcss-sprites": "^4.1.1",
     "strip-debug": "^1.1.1",
     "stripcolorcodes": "^0.1.0",
+    "svgmin": "^0.1.0",
     "svgstore": "^2.0.2",
-    "tslint": "^4.0.2",
-    "typescript": "^2.0.10",
-    "typescript-with-globs": "^0.1.4",
     "uglify-js": "^2.7.5",
     "util": "^0.10.3"
   },
   "dependencies": {
-    "@types/lodash": "^4.14.44",
     "hammerjs": "^2.0.8",
     "jquery": "^3.1.1",
     "jquery-hammerjs": "^2.0.0",
