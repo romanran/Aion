@@ -1,58 +1,20 @@
 {
   "name": "tdsoft_aion",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "base dev build tool",
   "private": true,
-  "watch": {
-    "build:ts": {
-      "patterns": [
-        "TS"
-      ],
-      "extensions": "js,ts"
-    },
-    "build:less": {
-      "patterns": [
-        "LESS"
-      ],
-      "extensions": "less,css"
-    },
-    "restart": {
-      "patterns": [
-        "bin",
-        "./package.json",
-        "./tsconfig.json"
-      ],
-      "extensions": "js,json"
-    }
-  },
   "scripts": {
-    "postinstall": "node bin bin/postinstall",
+    "postinstall": "node bin/postinstall",
     "test": "test",
     "browserify": "browserify",
     "para": "parallelshell",
-    "svgstore": "svgstore",
-    "lessc": "lessc",
     "uglifyjs": "uglify-js",
-    "browser-sync": "browser-sync",
-    "tsc": "tsc",
-    "tscg": "tscg",
-    "tslint": "tslint",
     "postcss": "postcss",
     "notify": "node-notifier",
-    "start": "npm run para \"npm run bs:start\" \"npm run watch\"",
+    "start": "npm run para \"npm run watch:jslibs\" \"node bin/main \"",
     "restart": "npm start",
-    "bs:start": "npm run browser-sync start -c=\"bin/bs-config.js\" ",
-    "bs:stream": "npm run browser-sync reload",
-    "build:less": "node bin/build-less",
-    "prebuild:ts": "npm run lint:ts",
-    "lint:ts": "node bin/lint-ts",
-    "build:ts": "tsc --allowJs | node bin/build-ts",
-    "build:jslibs": "browserify JSLIBS/main.js > ../dist/js/libs.js && uglifyjs ../dist/js/libs.js > ../dist/js/libs.min.js",
-    "watch": "npm run para \"npm run watch:less\" \"npm run watch:ts\" ",
-    "watch:ts": "chokidar \"TS/**/*.ts\" -c \"npm run build:ts\"",
-    "watch:less": "chokidar \"LESS/**/*.*\" -c \"npm run build:less\"",
-    "watch:svg": "chokidar \"SVG/**/*.*\" -c \"node bin/build-svg\" ",
-    "watch:images": "chokidar \"IMG/**/*.*\" -i \"IMG/sprites/**\" -c \"node bin/compress-img\"  "
+    "watch:jslibs": "chokidar \"../src/JSLIBS/*.js\" -c \"build:jslibs\"",
+    "build:jslibs": "browserify ../src/JSLIBS/main.js > ../dist/js/libs.js && uglifyjs ../dist/js/libs.js > ../dist/js/libs.min.js\""
   },
   "repository": {
     "type": "git",
@@ -62,11 +24,13 @@
   "license": "BSD-Protection",
   "homepage": "https://bitbucket.org/RomanRanniew/tdsoft_aion#readme",
   "devDependencies": {
+    "babel": "^6.5.2",
     "babel-cli": "^6.18.0",
+    "babel-preset-es2015": "^6.18.0",
     "beepbeep": "^1.2.0",
     "browser-sync": "^2.18.2",
     "browserify": "^13.1.1",
-    "chokidar-cli": "^1.2.0",
+    "chokidar": "^1.6.1",
     "cli": "^1.0.1",
     "colors": "^1.1.2",
     "fs": "0.0.1-security",
@@ -81,26 +45,21 @@
     "less-plugin-glob": "^1.1.1",
     "minimatch": "^3.0.3",
     "mkdirp": "^0.5.1",
-    "node-cmd": "^1.1.1",
     "node-notifier": "^4.6.1",
-    "node-run-cmd": "^1.0.1",
     "parallelshell": "^2.0.0",
     "path": "^0.12.7",
     "postcss": "^5.2.6",
-    "postcss-cli": "^2.6.0",
     "postcss-size": "^1.0.0",
     "postcss-sprites": "^4.1.1",
     "strip-debug": "^1.1.1",
     "stripcolorcodes": "^0.1.0",
+    "svgmin": "^0.1.0",
+    "svgo": "^0.7.1",
     "svgstore": "^2.0.2",
-    "tslint": "^4.0.2",
-    "typescript": "^2.0.10",
-    "typescript-with-globs": "^0.1.4",
     "uglify-js": "^2.7.5",
     "util": "^0.10.3"
   },
   "dependencies": {
-    "@types/lodash": "^4.14.44",
     "hammerjs": "^2.0.8",
     "jquery": "^3.1.1",
     "jquery-hammerjs": "^2.0.0",

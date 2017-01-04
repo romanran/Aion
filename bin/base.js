@@ -5,6 +5,7 @@ var fs = require('fs');
 var mkdirp = require('mkdirp');
 var util = require('util');
 var beep = require('beepbeep');
+var chokidar = require('chokidar');
 var notifier = require('node-notifier');
 var stopTimer = function (file) {
 	console.timeEnd("exec time for " + file);
@@ -19,4 +20,5 @@ module.exports = function () {
 	this.util = util;
 	this.notifier = notifier;
 	this.stopTimer = stopTimer;
+	this.chokidar = chokidar;
 };

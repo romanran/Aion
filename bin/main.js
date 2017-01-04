@@ -1,35 +1,32 @@
 require("./base.js")();
-var nrc = require('node-run-cmd');
+var project = require("../config.json");
+var bs_conf = require("./bs-config.js");
 var stripColorCodes = require('stripcolorcodes');
 var deb = function(s){console.log(s)};
+var bs = require("browser-sync").create();
+bs_conf.proxy = project.path;
+bs.init(bs_conf);
 
-(function(){
-	TDS = {
-		failure: function(file, id, err){
-//			console.log(err);
-			notifier.notify({
-				title:"Error in "+id+" for "+file+": ",
-				message: stripColorCodes(err)
-			});
-			beep(2);
-		},
-		done: function(callback, file, err){
-			if(typeof callback == "function"){
-				callback(file);
-			}
-			err == 0 ? console.log("success") : console.log("failure");
-		},
-		log: function(data){
-			console.log(data);
+require("./watch-less.js")();
+require("./watch-svg.js")();
+require("./watch-img.js")();
+require("./watch-js.js")();
+watchSvg();
+watchLess();
+watchImg();
+watchJs();
+
+const watcher_opts = {
+		ignoreInitial: true,
+		ignored: '',
+		awaitWriteFinish:{
+			stabilityThreshold: 50,//(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
+			pollInterval:20 // (default: 100). File size polling interval.
 		}
 	};
-	return TDS;
-})();
-
-function runCmd(cmd, id="build", file="", callback=""){
-	nrc.run(cmd, {shell: true, verbose: false, onData: TDS.log, onError: TDS.failure.bind("", file, id), onDone: TDS.done.bind("", callback, file)});
-}
-module.exports={
-	runCmd: runCmd,
-	deb: deb
-}
+var watcher = chokidar.watch(['bin/*.*', '../package.json', '../config.json'], watcher_opts);
+watcher.on('all', (e, where) => {
+	beep(3);
+	console.log("RESTART THE NODE".bold.red);
+	process.exit();
+});
