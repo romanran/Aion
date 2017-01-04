@@ -1,0 +1,13 @@
+{
+	"path": "localhost/matchbook-podcast",
+	"breakpoints": [
+		{"phone-xs": 375},
+		{"phone-s": 420},
+		{"phone": 500},
+		{"smart": 768},
+		{"tablet-s":  992},
+		{"tablet":  1020},
+		{"tablet-l": 1200},
+		{"desktop-s": 1480}
+	]
+}
