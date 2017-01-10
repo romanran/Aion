@@ -19,6 +19,9 @@ function watchJs(){
 			let q = new Promise(function(resolve, reject){
 				let files_l = files.length;
 				let i = 0;
+				let main_i = files.indexOf('../src/JS/main.js');
+				let main = files.splice(main_i, 1);
+				files.unshift('../src/JS/main.js');
 				files.forEach(file => {
 					babel.transformFile(file, {
 						presets: [es2015],

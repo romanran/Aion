@@ -6,6 +6,7 @@
   "scripts": {
     "postinstall": "node bin/postinstall",
     "test": "test",
+    "chokidar": "chokidar",
     "browserify": "browserify",
     "para": "parallelshell",
     "uglifyjs": "uglify-js",
@@ -14,7 +15,7 @@
     "start": "npm run para \"npm run watch:jslibs\" \"node bin/main \"",
     "restart": "npm start",
     "watch:jslibs": "chokidar \"../src/JSLIBS/*.js\" -c \"build:jslibs\"",
-    "build:jslibs": "browserify ../src/JSLIBS/main.js > ../dist/js/libs.js && uglifyjs ../dist/js/libs.js > ../dist/js/libs.min.js\""
+    "build:jslibs": "browserify \"main.js\" --standalone Bundle > \"../dist/js/libs.js\" && uglifyjs \"../dist/js/libs.js\" > \"../dist/js/libs.min.js\" "
   },
   "repository": {
     "type": "git",
@@ -30,6 +31,7 @@
     "beepbeep": "^1.2.0",
     "browser-sync": "^2.18.2",
     "browserify": "^13.1.1",
+    "browserify-shim": "^3.8.12",
     "chokidar": "^1.6.1",
     "cli": "^1.0.1",
     "colors": "^1.1.2",
@@ -67,5 +69,16 @@
     "lodash": "^4.17.3",
     "malihu-custom-scrollbar-plugin": "^3.1.5",
     "slick": "^1.12.2"
+  },
+  "browserify-shim": {
+    "jquery": "jquery:jQuery",
+    "lodash": {
+      "exports": "_"
+    }
+  },
+  "browserify": {
+    "transform": [
+      "browserify-shim"
+    ]
   }
 }
