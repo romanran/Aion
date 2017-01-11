@@ -12,6 +12,7 @@
     "uglifyjs": "uglify-js",
     "postcss": "postcss",
     "notify": "node-notifier",
+	"prestart": "npm install",
     "start": "npm run para \"npm run watch:jslibs\" \"node bin/main \"",
     "restart": "npm start",
     "watch:jslibs": "chokidar \"../src/JSLIBS/*.js\" -c \"build:jslibs\"",

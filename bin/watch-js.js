@@ -19,9 +19,9 @@ function watchJs(){
 			let q = new Promise(function(resolve, reject){
 				let files_l = files.length;
 				let i = 0;
-				let main_i = files.indexOf('../src/JS/main.js');
+				let main_i = files.indexOf('../src/JS/main/main.js');
 				let main = files.splice(main_i, 1);
-				files.unshift('../src/JS/main.js');
+				files.unshift('../src/JS/main/main.js');
 				files.forEach(file => {
 					babel.transformFile(file, {
 						presets: [es2015],
@@ -30,15 +30,19 @@ function watchJs(){
 						if(err){
 							beep(2);
 							err_count ++;
-							let err_type = err.stack.substr(0, err.stack.indexOf(': '));
-							console.log((err_type).red+" in file "+(file).bold);
-//							console.log(err.stack.substr(0, err.stack.indexOf('at')));
-							console.log("line: "+(err.loc.line+"").bold, "pos: "+(err.loc.column+"").bold);
-							console.log(err.codeFrame);
-							notifier.notify({
-								title: err_type+" in js build for "+file+": ",
-								message: "LINE: "+err.loc.line
-							});
+							if(err.loc){
+								let err_type = err.stack.substr(0, err.stack.indexOf(': '));
+								console.log((err_type).red+" in file "+(file).bold);
+	//							console.log(err.stack.substr(0, err.stack.indexOf('at')));
+								console.log("line: "+(err.loc.line+"").bold, "pos: "+(err.loc.column+"").bold);
+								console.log(err.codeFrame);
+								notifier.notify({
+									title: err_type+" in js build for "+file+": ",
+									message: "LINE: "+err.loc.line
+								});
+							}else{
+								console.log(err);	
+							}
 						}else{
 							data += result.code;
 						}
