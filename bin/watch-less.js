@@ -1,14 +1,20 @@
 function watchLess(){
+	//required plugins
 	require("./base.js")();
-	var chokidar = require('chokidar');
-	var postcss = require('postcss');
-	var sprites = require('postcss-sprites');
-	var postcss_size = require('postcss-size');
-	var updateRule = require('postcss-sprites/lib/core').updateRule;
+	const chokidar = require('chokidar');
+	const postcss = require('postcss');
+	const hasha = require('hasha');
+	const sprites = require('postcss-sprites');
+	const postcss_size = require('postcss-size');
+	const updateRule = require('postcss-sprites/lib/core').updateRule;
 	const plugins_list = ["less-plugin-clean-css", "less-plugin-autoprefix", 'less-plugin-glob', 'less-plugin-functions'];
-	const timers = [];
-	var less_options = "";
-	var opts = {
+
+	//set variables and options
+	const timers = []; //compilation times profilers
+	const less_options = "";
+	const files_hashes = [];
+	//postcss options
+	const opts = {
 		stylesheetPath: '../dist/css',
 		spritePath: '../dist/images/sprites',
 		basePath: '../',
@@ -21,27 +27,27 @@ function watchLess(){
 		},
 		hooks: {
 			onUpdateRule: function (rule, token, image) {
-				var backgroundSizeX = (image.spriteWidth / image.coords.width) * 100;
-				var backgroundSizeY = (image.spriteHeight / image.coords.height) * 100;
-				var backgroundPositionX = (image.coords.x / (image.spriteWidth - image.coords.width)) * 100;
-				var backgroundPositionY = (image.coords.y / (image.spriteHeight - image.coords.height)) * 100;
+				let backgroundSizeX = (image.spriteWidth / image.coords.width) * 100;
+				let backgroundSizeY = (image.spriteHeight / image.coords.height) * 100;
+				let backgroundPositionX = (image.coords.x / (image.spriteWidth - image.coords.width)) * 100;
+				let backgroundPositionY = (image.coords.y / (image.spriteHeight - image.coords.height)) * 100;
 
 				backgroundSizeX = isNaN(backgroundSizeX) ? 0 : backgroundSizeX;
 				backgroundSizeY = isNaN(backgroundSizeY) ? 0 : backgroundSizeY;
 				backgroundPositionX = isNaN(backgroundPositionX) ? 0 : backgroundPositionX;
 				backgroundPositionY = isNaN(backgroundPositionY) ? 0 : backgroundPositionY;
 
-				var backgroundImage = postcss.decl({
+				let backgroundImage = postcss.decl({
 					prop: 'background-image',
 					value: 'url(' + image.spriteUrl + ')'
 				});
 
-				var backgroundSize = postcss.decl({
+				let backgroundSize = postcss.decl({
 					prop: 'background-size',
 					value: backgroundSizeX + '% ' + backgroundSizeY + '%'
 				});
 
-				var backgroundPosition = postcss.decl({
+				let backgroundPosition = postcss.decl({
 					prop: 'background-position',
 					value: backgroundPositionX + '% ' + backgroundPositionY + '%'
 				});
@@ -50,7 +56,7 @@ function watchLess(){
 				rule.insertAfter(backgroundImage, backgroundPosition);
 				rule.insertAfter(backgroundPosition, backgroundSize);
 
-				['width', 'height'].forEach(function (prop) {
+				['width', 'height'].forEach( prop => {
 					rule.insertAfter(rule.last, postcss.decl({
 						prop: prop,
 						value: image.coords[prop] + 'px'
@@ -63,6 +69,7 @@ function watchLess(){
 			padding: 5
 		}
 	};
+	//browsersync options
 	const watcher_opts = {
 		ignoreInitial: true,
 		awaitWriteFinish:{
@@ -70,11 +77,13 @@ function watchLess(){
 			pollInterval:20 // (default: 100). File size polling interval.
 		}
 	};
+
 	const compile_files = [];
 	const compilers = [];
 	const plugins = [];
 
-	var dataReady = function(file, dest_file, err, data){
+	//compilation function
+	let dataReady = function(file, dest_file, err, data){
 		if(err!==null){
 			console.warn(err);
 			return 0;
@@ -101,11 +110,24 @@ function watchLess(){
 			sourceMap: {}
 		};
 		compilers[file].render(data, less_options)
-			.then(function(output) {
+			.then( output => {
 			postcss([sprites(opts), postcss_size]).process(output.css, { from: 'LESS/'+dest_file+'.less', to: '../dist/css/'+dest_file+'.css',  map: { inline: false, prev: output.map } })
-				.then(function (output) {
+				.then( output => {
+				let current_hash = hasha(output.css);
+
+				if( !_.isUndefined(files_hashes[dest_file]) ){
+					if( current_hash.localeCompare(files_hashes[dest_file]) === 0 ){
+						return 0;
+					}else{
+						files_hashes[dest_file] = current_hash;
+					}
+				}else{
+					files_hashes[dest_file]= current_hash;
+				}
+
 				if ( output.map ) fs.writeFileSync("../dist/css/"+dest_file+".min.css.map", output.map);
-				fs.writeFile("../dist/css/"+dest_file+".min.css", output.css, function(err) {
+
+				fs.writeFile("../dist/css/"+dest_file+".min.css", output.css, err=> {
 					if(err) {
 						return console.log(err);
 					}
@@ -118,18 +140,18 @@ function watchLess(){
 				});
 			});
 		},
-		  function(err) {
+		  err => {
 			console.log(dest_file+" x".red);
 			beep(2);
 			try{
-				var filename = typeof err.filename!=='undefined' ? err.filename.split("\\") : err.file.split("\\");
+				let filename = typeof err.filename!=='undefined' ? err.filename.split("\\") : err.file.split("\\");
 				filename = filename.splice((filename.length - 2), 2).join("/");
-				var err_A = [];
+				let err_A = [];
 				if(typeof err.line !=='undefined')err_A.push("\nline:"+err.line);
 				if(typeof err.extract !=='undefined')err_A.push("\nextract:"+err.extract);
 				if(typeof err.reason !=='undefined')err_A.push("\nreason:"+err.reason);
 				if(typeof err.message !=='undefined')err_A.push("\nreason:"+err.message);
-				var errstr="";
+				let errstr="";
 				for(i in err_A){
 					errstr+=err_A[i];
 				}
@@ -142,14 +164,15 @@ function watchLess(){
 		});
 	};
 
-	glob("../src/LESS/*.less", function (er, files) {
-		var cached_files = [];
-		var q = new Promise(function(resolve, reject){
+	//get files and start watching
+	glob("../src/LESS/*.less", (er, files) => {
+		let cached_files = [];
+		let q = new Promise(function(resolve, reject){
 			let total_files_num = files.length, i = 0;
 			files.forEach(file => {
 				compilers[file] = require('less');
 				compile_files.push(file);
-				fs.readFile(file, 'utf8', function(err, data){
+				fs.readFile(file, 'utf8', (err, data) => {
 					i++;
 					cached_files[file] = data;
 					if(i === total_files_num)resolve();
@@ -177,7 +200,7 @@ function watchLess(){
 				console.log("  ---- POSTCSS/LESS build initialized ----   ".bgYellow.black);
 
 				compile_files.forEach(file => {
-					var dest_file= file.substring( file.lastIndexOf("/")+1, file.lastIndexOf("."));
+					let dest_file= file.substring( file.lastIndexOf("/")+1, file.lastIndexOf("."));
 					if(!file.localeCompare(where)){
 						fs.readFile(file, 'utf8', function(err, data){
 							cached_files[file] = data;
