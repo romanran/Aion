@@ -49,7 +49,7 @@ q.then((data)=>{
 			pollInterval: 20 // (default: 100). File size polling interval.
 		}
 	};
-	var watcher = chokidar.watch(['bin/*.*', '../package.json', '../config.json'], watcher_opts);
+	var watcher = chokidar.watch(['bin/**', '../package.json', '../config.json'], watcher_opts);
 	watcher.on('all', (e, where) => {
 		beep(3);
 		console.log("RESTART THE NODE".bold.red);

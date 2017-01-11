@@ -1,15 +1,15 @@
-let colors = require('colors');
-let glob = require("glob");
-let path = require('path');
-let fs = require('fs');
-let mkdirp = require('mkdirp');
-let util = require('util');
-let lodash = require('lodash');
-let beep = require('beepbeep');
-let chokidar = require('chokidar');
-let notifier = require('node-notifier');
-let prompt = require('prompt');
-let stopTimer = function (file) {
+const colors = require('colors');
+const glob = require("glob");
+const path = require('path');
+const fs = require('fs');
+const mkdirp = require('mkdirp');
+const util = require('util');
+const lodash = require('lodash');
+const beep = require('beepbeep');
+const chokidar = require('chokidar');
+const notifier = require('node-notifier');
+const prompt = require('prompt');
+const stopTimer = function (file) {
 	console.timeEnd("exec time for " + file);
 };
 module.exports = function () {
