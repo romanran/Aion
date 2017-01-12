@@ -5,28 +5,12 @@ function watchJs(){
 		ignoreInitial: true,
 		ignored: '',
 		awaitWriteFinish:{
-			stabilityThreshold: 50,//(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
-			pollInterval:20 // (default: 100). File size polling interval.
+			stabilityThreshold: 30,//(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
+			pollInterval:10 // (default: 100). File size polling interval.
 		}
 	};
 	const browserify = require('browserify');
 	const UglifyJS = require("uglify-js");
-
-	function copyFile(source, target) {
-		return new Promise(function(resolve, reject) {
-			var rd = fs.createReadStream(source);
-			rd.on('error', rejectCleanup);
-			var wr = fs.createWriteStream(target);
-			wr.on('error', rejectCleanup);
-			function rejectCleanup(err) {
-				rd.destroy();
-				wr.end();
-				reject(err);
-			}
-			wr.on('finish', resolve);
-			rd.pipe(wr);
-		});
-	}
 
 	let watcher = chokidar.watch('../src/JS/**/*.js', watcher_opts);
 	console.log("Watching JS files...".bold);
@@ -85,7 +69,6 @@ function watchJs(){
 	function saveData(data){
 		let data_min = UglifyJS.minify(_.toString(data), {fromString: true});
 		let handleAfter = function(end, e){
-			console.log(end);
 			if( e !== null){
 				console.log((e).red);
 				if(e.syscall === 'open'){
@@ -109,22 +92,47 @@ function watchJs(){
 
 	let libs_watcher = chokidar.watch("../src/JSLIBS/main.js", watcher_opts);
 	libs_watcher.on('all', (e, where) => {
-		let b = browserify();
-		copyFile("../src/JSLIBS/main.js", "../temp/temp_libs.js");
-		return 0;
-//		fs.createReadStream("../src/JSLIBS/main.js").pipe(fs.createWriteStream("../temp/temp_libs.js"));
-		b.add('../temp/temp_libs.js');
-
-		let cleanUp = function(){
-			console.log("cleanup");
-			let filename = "../temp/temp_libs.js";
-			let tempFile = fs.openSync(filename, 'r');
-			fs.closeSync(tempFile);
-			fs.unlinkSync(filename);
-		}
-		b.bundle().pipe(cleanUp);
+		console.time("js libs build time");
+		console.log("Preparing files...".bold);
+		let b = browserify("", {standalone: "Bundle"});
+		fs.copy("../src/JSLIBS/main.js", "temp/temp_libs.js", (err)=>{
+		  if (err) return console.error(err)
+			b.add("temp/temp_libs.js");
+			console.log("Making JS libraries bundle...".bold);
+			let cleanUp = function(){
+				console.log("Cleaning up...".bold);
+				let filename = "temp/temp_libs.js";
+				let tempFile = fs.openSync(filename, 'r');
+				fs.closeSync(tempFile);
+				fs.unlinkSync(filename);
+			}
+			let g = b.bundle();
+//			process.stdout.on('data', function(data) {
+//				console.log(data);
+//			});
+//			console.log(g);
+			let data = '';
+			g.on("data", (chunk)=>{
+				data += chunk.toString('utf8');
+			});
+			let i = 0;
+			g.on("end", ()=>{
+				cleanUp();
+				console.log("Minifying compiled libraries...".bold);
+				let data_min = UglifyJS.minify(_.toString(data), {fromString: true});
+				fs.writeFile('../dist/js/libs.min.js', data_min.code, 'utf8', (e)=>{
+					if( e !== null){
+						console.log((e).red);
+					}else{
+						console.log(("js libraries saved ✔").green);
+						console.timeEnd( "js libs build time" );
+					}
+				});
+			});
+		});
 	});
 }
+
 module.exports = function(){
-	this.watchJs = watchJs
+	this.watchJs = watchJs;
 };

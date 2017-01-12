@@ -30,7 +30,7 @@ q.then((data)=>{
 	};
 	const bs = require("browser-sync").create();
 	bs_conf.proxy = project.path;
-	bs.init(bs_conf);
+//	bs.init(bs_conf);
 
 	require("./watch-less.js")();
 	require("./watch-svg.js")();

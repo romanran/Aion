@@ -73,8 +73,8 @@ function watchLess(){
 	const watcher_opts = {
 		ignoreInitial: true,
 		awaitWriteFinish:{
-			stabilityThreshold: 50,//(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
-			pollInterval:20 // (default: 100). File size polling interval.
+			stabilityThreshold: 30,//(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
+			pollInterval:10 // (default: 100). File size polling interval.
 		}
 	};
 
