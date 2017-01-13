@@ -41,18 +41,18 @@ q.then((data)=>{
 	watchImg();
 	watchJs();
 
-	const watcher_opts = {
-		ignoreInitial: true,
-		ignored: '',
-		awaitWriteFinish: {
-			stabilityThreshold: 50, //(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
-			pollInterval: 20 // (default: 100). File size polling interval.
-		}
-	};
-	var watcher = chokidar.watch(['bin/**', '../package.json', '../config.json'], watcher_opts);
-	watcher.on('all', (e, where) => {
-		beep(3);
-		console.log("RESTART THE NODE".bold.red);
-		process.exit();
-	});
+//	const watcher_opts = {
+//		ignoreInitial: true,
+//		ignored: '',
+//		awaitWriteFinish: {
+//			stabilityThreshold: 50, //(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
+//			pollInterval: 20 // (default: 100). File size polling interval.
+//		}
+//	};
+//	var watcher = chokidar.watch(['bin/**', '../package.json', '../config.json'], watcher_opts);
+//	watcher.on('all', (e, where) => {
+//		beep(3);
+//		console.log("RESTART THE NODE".bold.red);
+//		process.exit();
+//	});
 });
