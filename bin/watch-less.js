@@ -10,7 +10,7 @@ function watchLess(){
 	const plugins_list = ["less-plugin-clean-css", "less-plugin-autoprefix", 'less-plugin-glob', 'less-plugin-functions'];
 
 	//set variables and options
-	const timers = []; //compilation times profilers
+	const timers = {}; //compilation times profilers
 	const less_options = "";
 	const files_hashes = [];
 	//postcss options
@@ -132,7 +132,8 @@ function watchLess(){
 						return console.log(err);
 					}
 					console.log(dest_file+" ✔".green);
-					stopTimer(dest_file);
+					let end = Date.now() - timers[dest_file];
+					console.info("Execution time for "+dest_file.bold+" : %dms", end);
 					if(parseInt(output.messages[0].text) > 0){
 						console.log((output.messages[0].text).italic.green);
 					}
@@ -201,19 +202,19 @@ function watchLess(){
 
 				compile_files.forEach(file => {
 					let dest_file= file.substring( file.lastIndexOf("/")+1, file.lastIndexOf("."));
+					//if its a new file, not in the main glob, read the new file
 					if(!file.localeCompare(where)){
 						fs.readFile(file, 'utf8', function(err, data){
 							cached_files[file] = data;
-							timers.push("exec time for "+dest_file);
-							console.time("exec time for "+dest_file);
+							timers[dest_file] = Date.now();
+//							console.time("exec time for "+dest_file);
 							dataReady.call(this, file, dest_file, null, cached_files[file]);
 						});
 					}else{
-						timers.push("exec time for "+dest_file);
-						console.time("exec time for "+dest_file);
+						timers[dest_file] = Date.now();
+//						console.time("exec time for "+dest_file);
 						dataReady.call(this, file, dest_file, null, cached_files[file]);
 					}
-		//			fs.readFile(file, 'utf8', dataReady.bind(this, file, dest_file));
 				});
 			});
 
