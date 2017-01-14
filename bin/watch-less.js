@@ -10,7 +10,7 @@ function watchLess(){
 	const plugins_list = ["less-plugin-clean-css", "less-plugin-autoprefix", 'less-plugin-glob', 'less-plugin-functions'];
 
 	//set variables and options
-	const timers = []; //compilation times profilers
+	const timers = {}; //compilation times profilers
 	const less_options = "";
 	const files_hashes = [];
 	//postcss options
@@ -73,8 +73,8 @@ function watchLess(){
 	const watcher_opts = {
 		ignoreInitial: true,
 		awaitWriteFinish:{
-			stabilityThreshold: 50,//(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
-			pollInterval:20 // (default: 100). File size polling interval.
+			stabilityThreshold: 30,//(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
+			pollInterval:10 // (default: 100). File size polling interval.
 		}
 	};
 
@@ -113,18 +113,18 @@ function watchLess(){
 			.then( output => {
 			postcss([sprites(opts), postcss_size]).process(output.css, { from: 'LESS/'+dest_file+'.less', to: '../dist/css/'+dest_file+'.css',  map: { inline: false, prev: output.map } })
 				.then( output => {
+				//check files hash
 				let current_hash = hasha(output.css);
-
 				if( !_.isUndefined(files_hashes[dest_file]) ){
 					if( current_hash.localeCompare(files_hashes[dest_file]) === 0 ){
+						//if the hash is the same as before, dont save the file
 						return 0;
 					}else{
 						files_hashes[dest_file] = current_hash;
 					}
 				}else{
-					files_hashes[dest_file]= current_hash;
+					files_hashes[dest_file] = current_hash;
 				}
-
 				if ( output.map ) fs.writeFileSync("../dist/css/"+dest_file+".min.css.map", output.map);
 
 				fs.writeFile("../dist/css/"+dest_file+".min.css", output.css, err=> {
@@ -132,7 +132,8 @@ function watchLess(){
 						return console.log(err);
 					}
 					console.log(dest_file+" ✔".green);
-					stopTimer(dest_file);
+					let end = Date.now() - timers[dest_file];
+					console.info("Execution time for "+dest_file.bold+" : %dms", end);
 					if(parseInt(output.messages[0].text) > 0){
 						console.log((output.messages[0].text).italic.green);
 					}
@@ -164,10 +165,11 @@ function watchLess(){
 		});
 	};
 
-	//get files and start watching
+
+	//--Get files and start watching
 	glob("../src/LESS/*.less", (er, files) => {
 		let cached_files = [];
-		let q = new Promise(function(resolve, reject){
+		let q = new Promise( (resolve, reject)=>{
 			let total_files_num = files.length, i = 0;
 			files.forEach(file => {
 				compilers[file] = require('less');
@@ -179,8 +181,8 @@ function watchLess(){
 				});
 			});
 		});
-		q.then(function(){
-			var plugin_loader = new compilers[compile_files[0]].PluginLoader(compilers[compile_files[0]]);
+		q.then( ()=>{
+			let plugin_loader = new compilers[compile_files[0]].PluginLoader(compilers[compile_files[0]]);
 			for(let i in plugins_list){
 				plugin = plugin_loader.tryLoadPlugin(plugins_list[i], "");
 				if (plugin) {
@@ -201,19 +203,19 @@ function watchLess(){
 
 				compile_files.forEach(file => {
 					let dest_file= file.substring( file.lastIndexOf("/")+1, file.lastIndexOf("."));
+					//if its a new file, not in the main glob, read the new file
 					if(!file.localeCompare(where)){
-						fs.readFile(file, 'utf8', function(err, data){
+						fs.readFile(file, 'utf8', (err, data)=>{
 							cached_files[file] = data;
-							timers.push("exec time for "+dest_file);
-							console.time("exec time for "+dest_file);
+							timers[dest_file] = Date.now();
+//							console.time("exec time for "+dest_file);
 							dataReady.call(this, file, dest_file, null, cached_files[file]);
 						});
 					}else{
-						timers.push("exec time for "+dest_file);
-						console.time("exec time for "+dest_file);
+						timers[dest_file] = Date.now();
+//						console.time("exec time for "+dest_file);
 						dataReady.call(this, file, dest_file, null, cached_files[file]);
 					}
-		//			fs.readFile(file, 'utf8', dataReady.bind(this, file, dest_file));
 				});
 			});
 

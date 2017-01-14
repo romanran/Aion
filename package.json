@@ -6,37 +6,28 @@
   "scripts": {
     "postinstall": "node bin/postinstall",
     "test": "test",
-    "chokidar": "chokidar",
-    "browserify": "browserify",
-    "para": "parallelshell",
-    "uglifyjs": "uglify-js",
-    "postcss": "postcss",
     "notify": "node-notifier",
-    "prestart": "npm install",
-    "start": "npm run para \"npm run watch:jslibs\" \"node bin/main \"",
-    "restart": "npm start",
-    "watch:jslibs": "chokidar \"../src/JSLIBS/*.js\" -c \"build:jslibs\"",
-    "build:jslibs": "browserify \"main.js\" --standalone Bundle > \"../dist/js/libs.js\" && uglifyjs \"../dist/js/libs.js\" > \"../dist/js/libs.min.js\" "
+    "start": "node bin/nodemon",
+    "restart": "npm start"
   },
   "repository": {
     "type": "git",
     "url": "https://bitbucket.org/RomanRanniew/tdsoft_aion.git"
   },
-  "author": "TDSoft",
+  "author": "TDSOFT",
   "license": "BSD-Protection",
   "homepage": "https://bitbucket.org/RomanRanniew/tdsoft_aion#readme",
   "devDependencies": {
+    "async": "^2.1.4",
     "babel": "^6.5.2",
-    "babel-cli": "^6.18.0",
     "babel-preset-es2015": "^6.18.0",
     "beepbeep": "^1.2.0",
     "browser-sync": "^2.18.2",
-    "browserify": "^13.1.1",
-    "browserify-shim": "^3.8.12",
+    "browserify": "^13.3.0",
     "chokidar": "^1.6.1",
-    "cli": "^1.0.1",
     "colors": "^1.1.2",
     "fs": "0.0.1-security",
+    "fs-extra": "^1.0.0",
     "glob": "^7.1.1",
     "hasha": "^2.2.0",
     "imagemin": "^5.2.2",
@@ -46,16 +37,19 @@
     "less-plugin-autoprefix": "^1.5.1",
     "less-plugin-clean-css": "^1.5.1",
     "less-plugin-functions": "0.0.2",
-    "less-plugin-glob": "^1.1.1",
+    "less-plugin-glob": "^9.1.1",
     "lodash": "^4.17.4",
     "minimatch": "^3.0.3",
     "mkdirp": "^0.5.1",
+    "mutation-watcher": "^1.0.2",
     "node-notifier": "^4.6.1",
+    "nodemon": "^1.11.0",
     "parallelshell": "^2.0.0",
     "path": "^0.12.7",
     "postcss": "^5.2.6",
     "postcss-size": "^1.0.0",
     "postcss-sprites": "^4.1.1",
+    "prettydiff": "^99.0.1",
     "prompt": "^1.0.0",
     "strip-debug": "^1.1.1",
     "stripcolorcodes": "^0.1.0",
@@ -64,25 +58,5 @@
     "svgstore": "^2.0.2",
     "uglify-js": "^2.7.5",
     "util": "^0.10.3"
-  },
-  "dependencies": {
-    "hammerjs": "^2.0.8",
-    "jquery": "^3.1.1",
-    "jquery-hammerjs": "^2.0.0",
-    "jquery-match-height": "^0.7.0",
-    "lodash": "^4.17.3",
-    "malihu-custom-scrollbar-plugin": "^3.1.5",
-    "slick": "^1.12.2"
-  },
-  "browserify-shim": {
-    "jquery": "jquery:jQuery",
-    "lodash": {
-      "exports": "_"
-    }
-  },
-  "browserify": {
-    "transform": [
-      "browserify-shim"
-    ]
   }
 }
