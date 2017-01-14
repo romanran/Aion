@@ -7,7 +7,6 @@
     "postinstall": "node bin/postinstall",
     "test": "test",
     "notify": "node-notifier",
-    "prestart": "npm install",
     "start": "node bin/nodemon",
     "restart": "npm start"
   },
@@ -52,6 +51,7 @@
     "postcss": "^5.2.6",
     "postcss-size": "^1.0.0",
     "postcss-sprites": "^4.1.1",
+    "prettydiff": "^99.0.1",
     "prompt": "^1.0.0",
     "strip-debug": "^1.1.1",
     "stripcolorcodes": "^0.1.0",

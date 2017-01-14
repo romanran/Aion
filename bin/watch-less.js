@@ -168,7 +168,7 @@ function watchLess(){
 	//get files and start watching
 	glob("../src/LESS/*.less", (er, files) => {
 		let cached_files = [];
-		let q = new Promise(function(resolve, reject){
+		let q = new Promise( (resolve, reject)=>{
 			let total_files_num = files.length, i = 0;
 			files.forEach(file => {
 				compilers[file] = require('less');
@@ -180,7 +180,7 @@ function watchLess(){
 				});
 			});
 		});
-		q.then(function(){
+		q.then( ()=>{
 			var plugin_loader = new compilers[compile_files[0]].PluginLoader(compilers[compile_files[0]]);
 			for(let i in plugins_list){
 				plugin = plugin_loader.tryLoadPlugin(plugins_list[i], "");
@@ -204,7 +204,7 @@ function watchLess(){
 					let dest_file= file.substring( file.lastIndexOf("/")+1, file.lastIndexOf("."));
 					//if its a new file, not in the main glob, read the new file
 					if(!file.localeCompare(where)){
-						fs.readFile(file, 'utf8', function(err, data){
+						fs.readFile(file, 'utf8', (err, data)=>{
 							cached_files[file] = data;
 							timers[dest_file] = Date.now();
 //							console.time("exec time for "+dest_file);
