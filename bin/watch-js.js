@@ -13,7 +13,7 @@ class watchJs {
 			ignoreInitial: true,
 			ignored: '',
 			awaitWriteFinish: {
-				stabilityThreshold: 30, //(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
+				stabilityThreshold: 100, //(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
 				pollInterval: 10 // (default: 100). File size polling interval.
 			}
 		};
@@ -147,38 +147,33 @@ class watchJs {
 	watchLibs() {
 		let libs_watcher = chokidar.watch("../src/JSLIBS/main.js", this.watcher_opts);
 		libs_watcher.on('all', (e, where) => {
+
 			console.time("js libs build time");
 			console.log("Preparing files...".bold);
+			this.libs_data = '';
 			let b = this.browserify("", {
 				standalone: "Bundle"
 			});
-			fs.copy("../src/JSLIBS/main.js", "temp/temp_libs.js", (err) => {
-				if (err){
-					return console.error(err);
-				}
 
-				let g = b.bundle();
-				let data = '';
-				let i = 0;
+			b.add("../src/JSLIBS/main.js");
+			let g = b.bundle();
+			let i = 0;
 
-				console.log("Making JS libraries bundle...".bold);
-				b.add("temp/temp_libs.js");
+			console.log("Making JS libraries bundle...".bold);
 
-				g.on("data", (chunk) => {
-					data += chunk.toString('utf8');
-				});
-
-				g.on("end", this.libsFinish);
+			g.on("data", (chunk) => {
+				this.libs_data += chunk.toString('utf8');
 			});
+			g.on("end", this.libsFinish.bind(this));
+
 		});
 	}
 
 	libsFinish(){
-		this.cleanUp();
 		console.log("Minifying compiled libraries...".bold);
-		let data_min = this.UglifyJS.minify(_.toString(data), {
+		let data_min = this.UglifyJS.minify( _.toString( this.libs_data ), {
 			fromString: true
-		});
+		} );
 		fs.writeFile('../dist/js/libs.min.js', data_min.code, 'utf8', (e) => {
 			if (e !== null) {
 				console.log((e).red);
@@ -187,14 +182,6 @@ class watchJs {
 				console.timeEnd("js libs build time");
 			}
 		});
-	}
-
-	cleanUp(){
-		console.log("Cleaning up...".bold);
-		let filename = "temp/temp_libs.js";
-		let tempFile = fs.openSync(filename, 'r');
-		fs.closeSync(tempFile);
-		fs.unlinkSync(filename);
 	}
 
 }

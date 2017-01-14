@@ -113,18 +113,18 @@ function watchLess(){
 			.then( output => {
 			postcss([sprites(opts), postcss_size]).process(output.css, { from: 'LESS/'+dest_file+'.less', to: '../dist/css/'+dest_file+'.css',  map: { inline: false, prev: output.map } })
 				.then( output => {
+				//check files hash
 				let current_hash = hasha(output.css);
-
 				if( !_.isUndefined(files_hashes[dest_file]) ){
 					if( current_hash.localeCompare(files_hashes[dest_file]) === 0 ){
+						//if the hash is the same as before, dont save the file
 						return 0;
 					}else{
 						files_hashes[dest_file] = current_hash;
 					}
 				}else{
-					files_hashes[dest_file]= current_hash;
+					files_hashes[dest_file] = current_hash;
 				}
-
 				if ( output.map ) fs.writeFileSync("../dist/css/"+dest_file+".min.css.map", output.map);
 
 				fs.writeFile("../dist/css/"+dest_file+".min.css", output.css, err=> {
@@ -165,7 +165,8 @@ function watchLess(){
 		});
 	};
 
-	//get files and start watching
+
+	//--Get files and start watching
 	glob("../src/LESS/*.less", (er, files) => {
 		let cached_files = [];
 		let q = new Promise( (resolve, reject)=>{
@@ -181,7 +182,7 @@ function watchLess(){
 			});
 		});
 		q.then( ()=>{
-			var plugin_loader = new compilers[compile_files[0]].PluginLoader(compilers[compile_files[0]]);
+			let plugin_loader = new compilers[compile_files[0]].PluginLoader(compilers[compile_files[0]]);
 			for(let i in plugins_list){
 				plugin = plugin_loader.tryLoadPlugin(plugins_list[i], "");
 				if (plugin) {
