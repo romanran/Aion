@@ -1,39 +1,10 @@
-# README #
-
-
-### What is this repository for? ###
-
 * TDSoft base dev env and runner
 * v1.0.0.
 
+Aion is a Hellenistic deity associated with time, the orb or circle encompassing the universe. The "time" represented by Aion is unbounded, in contrast to Chronos as empirical time divided into past, present, and future. Highest god, creator of everything.
+
+
+
 ### How do I get set up? ###
 
-* Summary of set up
-* Configuration
-   npm i
-   npm i chokidar -g  //for watching files it needs to be installed globally
-* Dependencies
-
-  lodash
-
-  slick
-
-  hammerj
-
-* Database configuration
-* How to run tests
-
-   test:js
-
-* Deployment instructions
-build:* --prod true
-
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
+   open console in build-runner folder and type in "npm start"
