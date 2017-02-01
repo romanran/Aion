@@ -148,7 +148,7 @@ class watchJs {
 	}
 
 	watchLibs() {
-		let libs_watcher = chokidar.watch("../src/JSLIBS/main.js", this.watcher_opts);
+		let libs_watcher = chokidar.watch("../src/JSLIBS/*.js", this.watcher_opts);
 		libs_watcher.on('all', (e, where) => {
 
 			console.time("js libs build time");
