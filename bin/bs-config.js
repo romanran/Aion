@@ -5,7 +5,7 @@ module.exports = {
             "port": 8080
         }
     },
-    "files": ["!node_modules", "../dist", "../**/*.php", "!**/*.*"],
+    "files": ["!node_modules", "../dist", "../**/*.php", "!**/*.*", "../**/*.html"],
     "watchOptions": {},
     "server": false,
     "proxy": null,

@@ -29,8 +29,22 @@ q.then((data)=>{
 		console.log(s)
 	};
 	const bs = require("browser-sync").create();
-	bs_conf.proxy = project.path;
-//	bs.init(bs_conf);
+	if( project.path.indexOf("localhost") > 0){
+		bs_conf.proxy = project.path;
+		bs.init(bs_conf);
+	}else{
+		const nodemon = require('nodemon');
+		nodemon({
+			script: 'bin/appserver.js',
+			stdout: true,
+			watch: ['../app/**/*.*', '../app/server.js'],
+			exitcrash: 'bin/main.js'
+		}).on('crash', ()=> {
+			nodemon.emit('restart');
+		});
+		bs_conf.proxy = "localhost:8000";
+		bs.init(bs_conf);
+	}
 
 	require("./watch-less.js")();
 	require("./watch-svg.js")();
