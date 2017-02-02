@@ -1,5 +1,5 @@
 const colors = require('colors');
-const glob = require("glob");
+const glob = require("multi-glob").glob;
 const path = require('path');
 const fs = require('fs-extra');
 const mkdirp = require('mkdirp');

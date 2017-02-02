@@ -37,7 +37,7 @@ q.then((data)=>{
 		nodemon({
 			script: 'bin/appserver.js',
 			stdout: true,
-			watch: ['../app/**/*.*', '../app/server.js'],
+			watch: ['../app/**/*.*', '../../app/server.js'],
 			exitcrash: 'bin/main.js'
 		}).on('crash', ()=> {
 			nodemon.emit('restart');

@@ -29,7 +29,7 @@ class watchJs {
 	}
 
 	compileAll() {
-		glob("../src/JS/**/*.js", (er, files) => {
+		glob(['../src/JS/main/main.js',"../src/JS/**/*.js"], (er, files) => {
 			let promise = {
 				resolve: '',
 				reject: ''
@@ -43,9 +43,7 @@ class watchJs {
 			this.file_num = 0;
 			this.err_count = 0;
 			this.promises = promise;
-			files.splice(files.indexOf('../src/JS/main/main.js'), 1 );
-			files.splice(0, 0, '../src/JS/main/main.js');
-			files.forEach(this.compile.bind(this, files_l ));//compile each file
+			this.async.eachOfSeries(files,this.compile.bind(this, files_l ));//compile each file
 
 			this.data = '';
 			this.data_src = '';
@@ -54,7 +52,8 @@ class watchJs {
 		});
 	}
 
-	compile(files_l, file) {
+	compile(files_l, file, i, finish) {
+
 		let end = function(){
 			this.file_num++;
 			//resolve promise on the last file
@@ -62,10 +61,12 @@ class watchJs {
 				this.promises.resolve();
 			} else if (this.file_num == files_l) {
 				this.promises.reject();
+				//if the file is last one, resolve promise which then saves data to output location
 			}
+			console.log("File "+(this.file_num+"").bold+" "+path.basename(file).bold+" ✔".green);
 		}
-
-		this.async.parallel([ (end)=>{
+		//read file then pass it through babel
+		this.async.parallel([(end)=>{
 			fs.readFile(file, 'utf8',  (err, data)=>{
 				this.data_src += data;
 				end();
@@ -98,10 +99,12 @@ class watchJs {
 					this.data += result.code;
 					end();
 				}
-
+				finish();
+				//tell file iterating loop that the file has been processed
 			});
 		} ], end.bind(this) );
-
+		//end callback, which checks if the file was the last one
+		return true;
 	}
 
 	saveData() {
@@ -141,7 +144,7 @@ class watchJs {
 		}
 		fs.writeFile('../dist/js/all.js', this.data, 'utf8', handleAfter.bind(null, true));
 		fs.writeFile('../dist/js/all.min.js', data_min.code, 'utf8', handleAfter.bind(null, false));
-		fs.writeFile('../dist/js/all_es6.min.js', data_src_min, 'utf8', handleAfter.bind(null, false));
+//		fs.writeFile('../dist/js/all_es6.min.js', data_src_min, 'utf8', handleAfter.bind(null, false));
 	}
 
 	watchLibs() {
