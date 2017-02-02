@@ -29,7 +29,7 @@ class watchJs {
 	}
 
 	compileAll() {
-		glob(['../src/JS/main/main.js',"../src/JS/**/*.js"], (er, files) => {
+		glob(['../src/JS/main/main.js','../src/JS/main/*.js',"../src/JS/**/*.js"], (er, files) => {
 			let promise = {
 				resolve: '',
 				reject: ''
@@ -159,7 +159,14 @@ class watchJs {
 			});
 
 			b.add("../src/JSLIBS/main.js");
-			let g = b.bundle();
+			let g = b.bundle().on('error', (e)=>{
+					notifier.notify({
+						message: "Error: "+e.stack,
+						title: "Failed running browserify"
+					});
+					console.warn(e.message.red.bold);
+				}
+			);
 			let i = 0;
 
 			console.log("Making JS libraries bundle...".bold);
@@ -168,7 +175,6 @@ class watchJs {
 				this.libs_data += chunk.toString('utf8');
 			});
 			g.on("end", this.libsFinish.bind(this));
-
 		});
 	}
 
