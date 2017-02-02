@@ -29,7 +29,7 @@ q.then((data)=>{
 		console.log(s)
 	};
 	const bs = require("browser-sync").create();
-	if( project.path.indexOf("localhost") > 0){
+	if( project.path.indexOf("localhost") >= 0){
 		bs_conf.proxy = project.path;
 		bs.init(bs_conf);
 	}else{
