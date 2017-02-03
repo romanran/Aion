@@ -12,11 +12,11 @@ function watchImg(){
 			pollInterval:20 // (default: 100). File size polling interval.
 		}
 	};
-	var watcher = chokidar.watch('../src/IMG/*.svg', watcher_opts);
+	var watcher = chokidar.watch('../src/IMG/*.{jpg,jpeg,png}', watcher_opts);
 	console.log("Watching IMAGE files...".bold);
 	watcher.on('all', (e, where) => {
-		console.log("  ---- IMAGES build initialized ----   ".bgOrane.black);
-		imagemin(['../src/IMG/*.{jpg,png}'], '../dist/images', {
+		console.log("  ---- IMAGES build initialized ----   ".bgBlue.bold);
+		imagemin(['../src/IMG/*.{jpg,jpeg,png}'], '../dist/images', {
 			plugins: [
 				imageminMozjpeg(),
 				imageminPngquant({quality: '65-80'})
