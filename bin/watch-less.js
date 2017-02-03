@@ -6,6 +6,7 @@ function watchLess(){
 	const hasha = require('hasha');
 	const sprites = require('postcss-sprites');
 	const postcss_size = require('postcss-size');
+	this.async = require("async");
 	const updateRule = require('postcss-sprites/lib/core').updateRule;
 	const plugins_list = ["less-plugin-clean-css", "less-plugin-autoprefix", 'less-plugin-glob', 'less-plugin-functions'];
 
@@ -118,6 +119,7 @@ function watchLess(){
 				if( !_.isUndefined(files_hashes[dest_file]) ){
 					if( current_hash.localeCompare(files_hashes[dest_file]) === 0 ){
 						//if the hash is the same as before, dont save the file
+						console.log("No change in file "+dest_file);
 						return 0;
 					}else{
 						files_hashes[dest_file] = current_hash;
@@ -145,7 +147,7 @@ function watchLess(){
 			console.log(dest_file+" x".red);
 			beep(2);
 			try{
-				let filename = typeof err.filename!=='undefined' ? err.filename.split("\\") : err.file.split("\\");
+				let filename = typeof(err.filename)!==undefined ? err.filename.split("\\") : err.file.split("\\");
 				filename = filename.splice((filename.length - 2), 2).join("/");
 				let err_A = [];
 				if(typeof err.line !=='undefined')err_A.push("\nline:"+err.line);
@@ -157,11 +159,11 @@ function watchLess(){
 					errstr+=err_A[i];
 				}
 				console.log(((filename).bold+errstr).red);
-			}catch(e){console.log("Error in build. Report this to Roman:".red,e);}
-			notifier.notify({
-				title:"Error in LESS build for "+filename+": ",
-				message: err.message
-			});
+				notifier.notify({
+					title:"Error in LESS build for "+filename+": ",
+					message: err.message
+				});
+			}catch(e){}
 		});
 	};
 
@@ -200,23 +202,40 @@ function watchLess(){
 				where = where.replace(/\\/g, "/");
 				console.log((e.toUpperCase()).bold+" in file "+(where).bold);
 				console.log("  ---- POSTCSS/LESS build initialized ----   ".bgYellow.black);
-
-				compile_files.forEach(file => {
-					let dest_file= file.substring( file.lastIndexOf("/")+1, file.lastIndexOf("."));
-					//if its a new file, not in the main glob, read the new file
-					if(!file.localeCompare(where)){
-						fs.readFile(file, 'utf8', (err, data)=>{
-							cached_files[file] = data;
-							timers[dest_file] = Date.now();
-//							console.time("exec time for "+dest_file);
-							dataReady.call(this, file, dest_file, null, cached_files[file]);
+				this.async.series([(end)=>{
+					let f_l = compile_files.length;
+					let fi = 0;
+					compile_files.forEach(file => {
+						fs.exists(file, e =>{
+							fi++;
+							if(!e){
+								compile_files.splice( compile_files.indexOf(file));
+							}
+							if(fi == f_l){
+								end();
+							}
 						});
-					}else{
-						timers[dest_file] = Date.now();
-//						console.time("exec time for "+dest_file);
-						dataReady.call(this, file, dest_file, null, cached_files[file]);
-					}
-				});
+					});
+					},
+				 (end)=>{
+					compile_files.forEach(file => {
+						let dest_file= file.substring( file.lastIndexOf("/")+1, file.lastIndexOf("."));
+						//if its a new file, not in the main glob, read the new file
+						if(!file.localeCompare(where)){
+							fs.readFile(file, 'utf8', (err, data)=>{
+								cached_files[file] = data;
+								timers[dest_file] = Date.now();
+	//							console.time("exec time for "+dest_file);
+								dataReady.call(this, file, dest_file, null, cached_files[file]);
+							});
+						}else{
+							timers[dest_file] = Date.now();
+	//						console.time("exec time for "+dest_file);
+							dataReady.call(this, file, dest_file, null, cached_files[file]);
+						}
+					});
+				 }
+				]);
 			});
 
 		});

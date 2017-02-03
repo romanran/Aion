@@ -29,7 +29,6 @@ function watchSvg(){
 	]};
 
 	var svgo = new svgmin(svgo_conf);
-	var sprites = svgstore(opts);
 	var watcher = chokidar.watch('../src/SVG/*.svg', watcher_opts2);
 	var symbols_watcher = chokidar.watch('../src/SVG/symbols/*.svg', watcher_opts);
 
@@ -39,6 +38,10 @@ function watchSvg(){
 			return 1;
 		}
 		svgo.optimize(data, function(result) {
+			if(result.error){
+				console.log((result.error).red);
+				return false;
+			}
 			fs.writeFile("../dist/svg/"+dest, result.data, (err) => {
 			  if (err) throw err;
 				console.log(dest+" file minified");
@@ -51,11 +54,11 @@ function watchSvg(){
 		where = where.replace(/\\/g, "/");
 		console.log((e.toUpperCase()).bold+" in file "+(where).bold);
 		console.log("  ---- SVG SYMBOLS build initialized ----   ".bgWhite.black);
-
+		let sprites = svgstore(opts);
 		glob("../src/SVG/symbols/*.svg", function (er, files) {
 			files.forEach(file => {
 				sprites.add(path.basename(file, '.svg'), fs.readFileSync(file, 'utf8'));
-			})
+			});
 //			fs.writeFile("../dist/svg/symbols.min.svg", sprites.toString());
 			minify("symbols.min.svg", null, sprites.toString());
 		});
