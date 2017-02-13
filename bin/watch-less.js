@@ -136,9 +136,11 @@ function watchLess(){
 					console.log(dest_file+" ✔".green);
 					let end = Date.now() - timers[dest_file];
 					console.info("Execution time for "+dest_file.bold+" : %dms", end);
-					if(parseInt(output.messages[0].text) > 0){
-						console.log((output.messages[0].text).italic.green);
-					}
+					try{
+						if(parseInt(output.messages[0]) > 0){
+							console.log((output.messages[0].text).italic.green);
+						}
+					}catch(e){}
 					console.log(" ");
 				});
 			});

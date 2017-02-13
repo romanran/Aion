@@ -54,7 +54,7 @@ class watchJs {
 
 	compile(files_l, file, i, finish) {
 
-		let end = function(){
+		let fileRead = function(){
 			this.file_num++;
 			//resolve promise on the last file
 			if (this.file_num === files_l && this.err_count === 0) {
@@ -102,7 +102,7 @@ class watchJs {
 				finish();
 				//tell file iterating loop that the file has been processed
 			});
-		} ], end.bind(this) );
+		} ], fileRead.bind(this) );
 		//end callback, which checks if the file was the last one
 		return true;
 	}
