@@ -1,6 +1,8 @@
 class watchJs {
 
-	constructor() {
+	constructor(project) {
+		this.project = project;
+		this.bs = require("browser-sync").get(this.project.name);
 		this.babel = require("babel-core");
 		this.es2015 = require("babel-preset-es2015");
 		this.browserify = require('browserify');
@@ -54,7 +56,7 @@ class watchJs {
 
 	compile(files_l, file, i, finish) {
 
-		let end = function(){
+		let fileRead = function(){
 			this.file_num++;
 			//resolve promise on the last file
 			if (this.file_num === files_l && this.err_count === 0) {
@@ -102,7 +104,7 @@ class watchJs {
 				finish();
 				//tell file iterating loop that the file has been processed
 			});
-		} ], end.bind(this) );
+		} ], fileRead.bind(this) );
 		//end callback, which checks if the file was the last one
 		return true;
 	}
@@ -148,7 +150,7 @@ class watchJs {
 	}
 
 	watchLibs() {
-		let libs_watcher = chokidar.watch("../src/JSLIBS/main.js", this.watcher_opts);
+		let libs_watcher = chokidar.watch("../src/JSLIBS/*.js", this.watcher_opts);
 		libs_watcher.on('all', (e, where) => {
 
 			console.time("js libs build time");
@@ -160,13 +162,13 @@ class watchJs {
 
 			b.add("../src/JSLIBS/main.js");
 			let g = b.bundle().on('error', (e)=>{
-					notifier.notify({
-						message: "Error: "+e.stack,
-						title: "Failed running browserify"
-					});
-					console.warn(e.message.red.bold);
-				}
-			);
+				notifier.notify({
+					message: "Error: "+e.stack,
+					title: "Failed running browserify"
+				});
+				this.bs.notify("<span style='color: red'>Failed running browserify</span>");
+				console.warn(e.message.red.bold);
+			});
 			let i = 0;
 
 			console.log("Making JS libraries bundle...".bold);
@@ -179,6 +181,14 @@ class watchJs {
 	}
 
 	libsFinish(){
+		fs.writeFile('../dist/js/libs.js', _.toString( this.libs_data ), 'utf8', (e) => {
+			if (e !== null) {
+				console.log((e).red);
+			} else {
+				console.log(("js libraries saved ✔").green);
+			}
+		});
+		
 		console.log("Minifying compiled libraries...".bold);
 		let data_min = this.UglifyJS.minify( _.toString( this.libs_data ), {
 			fromString: true
@@ -187,7 +197,7 @@ class watchJs {
 			if (e !== null) {
 				console.log((e).red);
 			} else {
-				console.log(("js libraries saved ✔").green);
+				console.log(("js minified libraries saved ✔").green);
 				console.timeEnd("js libs build time");
 			}
 		});
