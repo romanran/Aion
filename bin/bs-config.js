@@ -9,7 +9,6 @@ module.exports = {
     "watchOptions": {},
     "server": false,
     "proxy": null,
-    "port": 3000,
     "middleware": false,
     "serveStatic": [],
     "ghostMode": {
@@ -42,7 +41,7 @@ module.exports = {
     "reloadDelay": 20,
     "reloadDebounce": 300,
     "reloadThrottle": 100,
-    "plugins": [],
+    "plugins": ['bs-eslint-message'],
     "injectChanges": true,
     "startPath": null,
     "minify": true,

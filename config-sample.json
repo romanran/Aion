@@ -1,5 +1,8 @@
-{
-	"path": "localhost/matchbook-podcast",
+{	
+	"name": "{{project_name}}",
+	"bs": "{{browsersync}}",
+	"server": "{{server}}",
+	"path": "localhost/{{project_name}}",
 	"breakpoints": [
 		{"phone-xs": 375},
 		{"phone-s": 420},

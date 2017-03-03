@@ -1,6 +1,7 @@
-function watchLess(){
+function watchLess(project){
 	//required plugins
 	require("./base.js")();
+	const bs = require("browser-sync").get(project.name);
 	const chokidar = require('chokidar');
 	const postcss = require('postcss');
 	const hasha = require('hasha');
@@ -136,6 +137,7 @@ function watchLess(){
 					console.log(dest_file+" ✔".green);
 					let end = Date.now() - timers[dest_file];
 					console.info("Execution time for "+dest_file.bold+" : %dms", end);
+					bs.stream({match: "**/*.css"});
 					try{
 						if(parseInt(output.messages[0]) > 0){
 							console.log((output.messages[0].text).italic.green);
