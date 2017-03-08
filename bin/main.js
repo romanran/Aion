@@ -24,6 +24,7 @@ q.then((data) => {
 	const bs_conf = require("./bs-config.js");
 	const stripColorCodes = require('stripcolorcodes');
 	const portfinder = require('portfinder');
+    portfinder.basePort = 3000;
 	const deb = function (s) {
 		console.log(s)
 	};
@@ -40,9 +41,10 @@ q.then((data) => {
 		});
 	}
 	if (project.bs) {
-		portfinder.getPort(3000, (err, port) => {
+		portfinder.getPort((err, port) => {
 			bs_conf.proxy = project.path;
 			bs_conf.port = port;
+			bs_conf.ui.port = port+1;
 			let sad= bs.init(bs_conf);
 		});
 	}
