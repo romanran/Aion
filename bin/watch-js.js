@@ -161,14 +161,17 @@ class watchJs {
 			});
 
 			b.add("../src/JSLIBS/main.js");
-			let g = b.bundle().on('error', (e)=>{
-				notifier.notify({
-					message: "Error: "+e.stack,
-					title: "Failed running browserify"
-				});
-				this.bs.notify("<span style='color: red'>Failed running browserify</span>");
-				console.warn(e.message.red.bold);
-			});
+            let g;
+            try{
+                g = b.bundle().on('error', (e)=>{
+                    notifier.notify({
+                        message: "Error: "+e.stack,
+                        title: "Failed running browserify"
+                    });
+                    this.bs.notify("<span style='color: red'>Failed running browserify</span>");
+                    console.warn(e.message.red.bold);
+                });
+            }catch(e){console.log(e);}
 			let i = 0;
 
 			console.log("Making JS libraries bundle...".bold);
