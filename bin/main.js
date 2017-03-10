@@ -45,7 +45,7 @@ q.then((data) => {
 			bs_conf.proxy = project.path;
 			bs_conf.port = port;
 			bs_conf.ui.port = port+1;
-			let sad= bs.init(bs_conf);
+			bs.init(bs_conf);
 		});
 	}
 
