@@ -8,15 +8,17 @@ const lodash = require('lodash');
 const beep = require('beepbeep');
 const chokidar = require('chokidar');
 const notifier = require('node-notifier');
-const prompt = require('prompt');
+const asynch = require('async');
 const stopTimer = function (file) {
 	console.timeEnd("exec time for " + file);
 };
+
 module.exports = function () {
 	this.colors = colors;
 	this.glob = glob;
 	this.path = path;
 	this.fs = fs;
+	this.asynch = asynch;
 	this.beep = beep;
 	this.mkdirp = mkdirp;
 	this.util = util;

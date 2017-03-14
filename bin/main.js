@@ -48,14 +48,30 @@ q.then((data) => {
 			bs.init(bs_conf);
 		});
 	}
-
-	require("./watch-less.js")();
-	require("./watch-svg.js")();
-	require("./watch-img.js")();
-	require("./watch-js.js")();
-	watchSvg(project);
-	watchLess(project);
-	watchImg(project);
-	new watchJs(project);
+	new Aion( project ).watch();
 
 });
+class Aion {
+	constructor( project ){
+		this.project= project;
+		this.LessBuilder = require("./less-builder.js");
+		this.SvgBuilder = require("./svg-builder.js");
+		this.ImgBuilder = require("./img-builder.js");
+		this.JsBuilder = require("./js-builder.js");
+	}
+	
+	watch(){
+		//if watch all, else switch or something
+		new this.JsBuilder( this.project ).watchAll();
+		new this.ImgBuilder( this.project ).watchAll();
+		new this.LessBuilder( this.project ).watchAll();
+		new this.SvgBuilder( this.project ).watchAll();
+	}
+	
+	build(){
+		new this.JsBuilder( this.project ).build();
+		new this.ImgBuilder( this.project ).build();
+		new this.LessBuilder( this.project ).build();
+		new this.SvgBuilder( this.project ).build();
+	}
+}
