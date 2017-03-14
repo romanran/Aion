@@ -42,9 +42,9 @@ q.then((data) => {
 	}
 	if (project.bs) {
 		portfinder.getPort((err, port) => {
-			bs_conf.proxy = project.path;
+			bs_conf.proxy = {target: project.path, ws: true};
 			bs_conf.port = port;
-			bs_conf.ui.port = port+1;
+			bs_conf.ui={port : port+1};
 			bs.init(bs_conf);
 		});
 	}

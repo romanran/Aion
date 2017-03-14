@@ -7,9 +7,11 @@ function watchLess(project){
 	const hasha = require('hasha');
 	const sprites = require('postcss-sprites');
 	const postcss_size = require('postcss-size');
+	const mqpacker = require("css-mqpacker");
 	this.async = require("async");
+    const LessPluginCleanCSS = require('less-plugin-clean-css');
 	const updateRule = require('postcss-sprites/lib/core').updateRule;
-	const plugins_list = ["less-plugin-clean-css", "less-plugin-autoprefix", 'less-plugin-glob', 'less-plugin-functions'];
+	const plugins_list = [new LessPluginCleanCSS({advanced: true}), "less-plugin-autoprefix", 'less-plugin-glob', 'less-plugin-functions'];
 
 	//set variables and options
 	const timers = {}; //compilation times profilers
@@ -113,7 +115,7 @@ function watchLess(project){
 		};
 		compilers[file].render(data, less_options)
 			.then( output => {
-			postcss([sprites(opts), postcss_size]).process(output.css, { from: 'LESS/'+dest_file+'.less', to: '../dist/css/'+dest_file+'.css',  map: { inline: false, prev: output.map } })
+			postcss([sprites(opts), postcss_size, mqpacker]).process(output.css, { from: 'LESS/'+dest_file+'.less', to: '../dist/css/'+dest_file+'.css',  map: { inline: false, prev: output.map } })
 				.then( output => {
 				//check files hash
 				let current_hash = hasha(output.css);
@@ -190,14 +192,18 @@ function watchLess(project){
 		q.then( ()=>{
 			let plugin_loader = new compilers[compile_files[0]].PluginLoader(compilers[compile_files[0]]);
 			for(let i in plugins_list){
-				plugin = plugin_loader.tryLoadPlugin(plugins_list[i], "");
-				if (plugin) {
-					plugins.push(plugin);
-				} else {
-					console.error("Unable to load plugin " + plugin.name +
-								  " please make sure that it is installed under or at the same level as less");
-					continue;
-				}
+                if( _.isObject( plugins_list[i] ) ){
+                    plugins.push( plugins_list[i] );
+                }else{
+                    let plugin = plugin_loader.tryLoadPlugin(plugins_list[i], "");
+                    if (plugin) {
+                        plugins.push(plugin);
+                    } else {
+                        console.error("Unable to load plugin " + plugin +
+                                      " please make sure that it is installed under or at the same level as less");
+                        continue;
+                    }
+                }
 			}
 
 			console.log("Watching LESS files...".bold);
