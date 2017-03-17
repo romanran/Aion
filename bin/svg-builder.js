@@ -39,7 +39,7 @@ class SvgBuilder{
 			console.log("ERROR".red, err);
 			return 1;
 		}
-		svgo.optimize(data, result => {
+		this.svgo.optimize(data, result => {
 			if(result.error){
 				console.log((result.error+'').red);
 				return false;
@@ -74,7 +74,7 @@ class SvgBuilder{
 				sprites.add(path.basename(file, '.svg'), fs.readFileSync(file, 'utf8'));
 			});
 //			fs.writeFile("../dist/svg/symbols.min.svg", sprites.toString());
-			minify("symbols.min.svg", null, sprites.toString());
+			this.minify("symbols.min.svg", null, sprites.toString());
 		} );
 		
 	}
