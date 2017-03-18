@@ -58,6 +58,7 @@ class Aion {
 		this.SvgBuilder = require("./svg-builder.js");
 		this.ImgBuilder = require("./img-builder.js");
 		this.JsBuilder = require("./js-builder.js");
+		this.FontBuilder = require("./font-builder.js");
 	}
 	
 	watch(){
@@ -66,6 +67,7 @@ class Aion {
 		new this.ImgBuilder( this.project ).watchAll();
 		new this.LessBuilder( this.project ).watchAll();
 		new this.SvgBuilder( this.project ).watchAll();
+		new this.FontBuilder( this.project ).watchAll();
 	}
 	
 	build(){
@@ -73,5 +75,6 @@ class Aion {
 		new this.ImgBuilder( this.project ).build();
 		new this.LessBuilder( this.project ).build();
 		new this.SvgBuilder( this.project ).build();
+		new this.FontBuilder( this.project ).build();
 	}
 }
