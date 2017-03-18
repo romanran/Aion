@@ -42,17 +42,17 @@ class LessBuilder {
                     backgroundPositionX = isNaN(backgroundPositionX) ? 0 : backgroundPositionX;
                     backgroundPositionY = isNaN(backgroundPositionY) ? 0 : backgroundPositionY;
 
-                    let backgroundImage = postcss.decl({
+                    let backgroundImage = this.postcss.decl({
                         prop: 'background-image',
                         value: 'url(' + image.spriteUrl + ')'
                     });
 
-                    let backgroundSize = postcss.decl({
+                    let backgroundSize = this.postcss.decl({
                         prop: 'background-size',
                         value: backgroundSizeX + '% ' + backgroundSizeY + '%'
                     });
 
-                    let backgroundPosition = postcss.decl({
+                    let backgroundPosition = this.postcss.decl({
                         prop: 'background-position',
                         value: backgroundPositionX + '% ' + backgroundPositionY + '%'
                     });
@@ -62,12 +62,12 @@ class LessBuilder {
                     rule.insertAfter(backgroundPosition, backgroundSize);
 
                     ['width', 'height'].forEach(prop => {
-                        rule.insertAfter(rule.last, postcss.decl({
+                        rule.insertAfter(rule.last, this.postcss.decl({
                             prop: prop,
                             value: image.coords[prop] + 'px'
                         }));
                     });
-                    updateRule(rule, token, image);
+                    this.updateRule(rule, token, image);
                 }
             },
             spritesmith: {
@@ -164,25 +164,25 @@ class LessBuilder {
                 });
             });
         },
-                  err => {
+          err => {
             console.log(dest_file + " x".red);
             beep(2);
             try {
                 let filename = typeof (err.filename) !== undefined ? err.filename.split("\\") : err.file.split("\\");
                 filename = filename.splice((filename.length - 2), 2).join("/");
                 let err_A = [];
-                if (typeof err.line !== 'undefined') err_A.push("\nline:" + err.line);
-                if (typeof err.extract !== 'undefined') err_A.push("\nextract:" + err.extract);
-                if (typeof err.reason !== 'undefined') err_A.push("\nreason:" + err.reason);
-                if (typeof err.message !== 'undefined') err_A.push("\nreason:" + err.message);
+                if ( !_.isUndefined(err.line) ) err_A.push(("\nline:" + err.line+'').bold);
+                if ( !_.isUndefined(err.extract) ) err_A.push("\nextract:" + err.extract);
+                if ( !_.isUndefined(err.reason) ) err_A.push("\nreason:" + err.reason.yellow.bold);
+                if ( !_.isUndefined(err.message) ) err_A.push("\nreason:" + err.message.yellow.bold);
                 let errstr = "";
-                for (i in err_A) {
+                for (let i in err_A) {
                     errstr += err_A[i];
                 }
-                console.log(((filename).bold + errstr).red);
+                console.log(((filename).bold + errstr));
                 notifier.notify({
                     title: "Error in LESS build for " + filename + ": ",
-                    message: err.message
+                    message: _.isUndefined(err.message) ? err.reason :err.message
                 });
             } catch (e) {}
         });
