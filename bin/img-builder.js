@@ -19,10 +19,10 @@ class ImgBuilder{
 	
 	build(e, where){
 		console.log("  ---- IMAGES build initialized ----   ".bgBlue.bold);
-		imagemin(['../src/IMG/*.{jpg,jpeg,png}'], '../dist/images', {
+		this.imagemin(['../src/IMG/*.{jpg,jpeg,png}'], '../dist/images', {
 			plugins: [
-				imageminMozjpeg(),
-				imageminPngquant({quality: '65-80'})
+				this.imageminMozjpeg(),
+				this.imageminPngquant({quality: '65-80'})
 			]
 		}).then(files => {
 			let total = 0;
