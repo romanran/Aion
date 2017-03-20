@@ -1,9 +1,8 @@
 require("./base.js")();
-fs.existsSync("../src/") || fs.mkdirSync("../src/");
-fs.existsSync("../dist/") || fs.mkdirSync("../dist/");
-fs.existsSync("../dist/js") || fs.mkdirSync("../dist/js");
-fs.existsSync("../dist/svg") || fs.mkdirSync("../dist/svg");
-fs.existsSync("../dist/svg/symbols") || fs.mkdirSync("../dist/svg/symbols");
-fs.existsSync("../dist/css") || fs.mkdirSync("../dist/css");
-fs.existsSync("../dist/images") || fs.mkdirSync("../dist/images");
-fs.existsSync("../dist/images/sprites") || fs.mkdirSync("../dist/images/sprites");
+let dist_dirs = ['js', 'svg/symbols', 'css', 'images', 'fonts'];
+let src_dirs = ['JS', 'SVG/SYMBOLS', 'LESS', 'IMG', 'FONTS', 'JSLIBS'];
+let dist_dir = 'dist/';
+let src_dir = 'src/';
+
+_.forEach( dist_dirs, dir => fs.ensureDir('../'+dist_dir+dir));
+_.forEach( src_dirs, dir => fs.ensureDir('../'+src_dir+dir));

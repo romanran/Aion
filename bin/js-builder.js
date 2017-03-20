@@ -27,34 +27,38 @@ class JsBuilder {
 		watcher.on('all', (e, where) => {
 			console.log(e.yellow.bold + " in " + path.basename(where).bold + ", starting build...");
 			console.time("build time");
-			this.compileAll();
+			if( where.indexOf('wp-admin') ){
+				this.target_name = 'all';
+				glob(['../src/JS/wp-admin/wp-admin.js','../src/JS/wp-admin/**/*.js'],  this.compileAll.bind(this));
+			}else{
+				this.target_name = 'wp-admin';
+				glob(['../src/JS/main/main.js','../src/JS/main/*.js',"!../src/JS/wp-admin/**/*.js","../src/JS/**/*.js"], this.compileAll.bind(this));
+			}
 		});
 		
 		this.watchLibs();
 	}
 
-	compileAll() {
-		glob(['../src/JS/main/main.js','../src/JS/main/*.js',"../src/JS/**/*.js"], (er, files) => {
-			let promise = {
-				resolve: '',
-				reject: ''
-			};
-			let files_l = files.length;
+	compileAll(err, files) {
+		let promise = {
+			resolve: '',
+			reject: ''
+		};
+		let files_l = files.length;
 
-			this.q = new Promise((resolve, reject) => {
-				promise.resolve = resolve;
-				promise.reject = reject;
-			});
-			this.file_num = 0;
-			this.err_count = 0;
-			this.promises = promise;
-			this.async.eachOfSeries(files,this.compile.bind(this, files_l ));//compile each file
-
-			this.data = '';
-			this.data_src = '';
-
-			this.q.then(this.saveData.bind(this));//when all files are transpalide
+		this.q = new Promise((resolve, reject) => {
+			promise.resolve = resolve;
+			promise.reject = reject;
 		});
+		this.file_num = 0;
+		this.err_count = 0;
+		this.promises = promise;
+		this.async.eachOfSeries(files,this.compile.bind(this, files_l ));//compile each file
+
+		this.data = '';
+		this.data_src = '';
+
+		this.q.then(this.saveData.bind(this));//when all files are transpalide
 	}
 
 	compile(files_l, file, i, finish) {
@@ -128,18 +132,6 @@ class JsBuilder {
 		}
 
 		let handleAfter = function (end, e) {
-			if (e !== null && e.syscall === 'open') {
-				console.log("creating directory".yellow);
-				fs.existsSync("../dist/js") || fs.mkdirSync("../dist/js");
-				fs.writeFile('../dist/js/all.js', data, 'utf8', (e) => {
-					if (e === null) {
-						console.log("js build ✔".green);
-						console.timeEnd("build time");
-					}else{
-						showError(e);
-					}
-				});
-			}
 			if (e !== null) {
 				showError(e);
 			} else if (end) {
