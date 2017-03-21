@@ -27,11 +27,11 @@ class JsBuilder {
 		watcher.on('all', (e, where) => {
 			console.log(e.yellow.bold + " in " + path.basename(where).bold + ", starting build...");
 			console.time("build time");
-			if( where.indexOf('wp-admin') ){
-				this.target_name = 'all';
+			if( where.indexOf('wp-admin') >= 0 ){
+				this.target_name = 'wp-admin';
 				glob(['../src/JS/wp-admin/wp-admin.js','../src/JS/wp-admin/**/*.js'],  this.compileAll.bind(this));
 			}else{
-				this.target_name = 'wp-admin';
+				this.target_name = 'all';
 				glob(['../src/JS/main/main.js','../src/JS/main/*.js',"!../src/JS/wp-admin/**/*.js","../src/JS/**/*.js"], this.compileAll.bind(this));
 			}
 		});
