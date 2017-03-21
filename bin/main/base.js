@@ -17,14 +17,7 @@ const deb = function(s) {
 const stopTimer = function (file) {
 	console.timeEnd("exec time for " + file);
 };
-
-const paths = {
-	base: path.resolve('./'),
-	project : path.resolve('../'),
-	main: path.resolve('./bin/main/'),
-	configs : path.resolve('./bin/config/'),
-	builders: path.resolve('./bin/builders/'),
-}
+const paths = require(path.resolve('./bin/config/paths.js'));
 
 module.exports = function () {
 	this.colors = colors;
