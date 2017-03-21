@@ -30,13 +30,13 @@ class FontBuilder{
 	
 	move( e, where ){
 		where = where.replace(/\\/g, "/");
-		let dest = (where).split("/").splice(3).join("/");
+		let dest = path.parse(where);
 		if( e.indexOf('add') >= 0 || e.indexOf('change') >= 0 ){
-			fs.copy(where, paths.project + "/dist/fonts/"+dest, {overwrite: true}, err =>{
+			fs.copy(where, _.replace(dest.dir, 'src/FONTS', 'dist/fonts')+'/'+dest.base, {overwrite: true}, err =>{
 				if(err){
 					console.error("ERROR: ".red, err);
 				}else{
-					console.log(path.dirname(dest)+' moved'.green);	
+					console.log(dest.base+' moved'.green);	
 				}
 			});
 		}

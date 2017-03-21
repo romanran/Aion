@@ -2,8 +2,8 @@ module.exports = {
     "files": ["!node_modules", "../dist/**/*.css", "../dist/**/*.(js|png|jpg|svg)", "../**/*.php", "!**/*.*", "../**/*.html"],
     "server": false,
     "proxy": null,
-    notify: {
-        styles: [
+    "notify": {
+        "styles": [
             'position: fixed;',
             'right:0;',
             'bottom:0px;',

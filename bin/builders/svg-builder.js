@@ -55,7 +55,7 @@ class SvgBuilder{
 		
 		console.log('Watching SVG files...'.bold);
 		
-		this.watcher = chokidar.watch(paths.project + '/src/SVG/*.svg', this.watcher_opts);
+		this.watcher = chokidar.watch(paths.project + '/src/SVG/**/*.svg', this.watcher_opts);
 		this.symbols_watcher = chokidar.watch(paths.project + '/src/SVG/symbols/*.svg', this.symbol_watcher_opts);
 		
 		this.symbols_watcher.on('all', this.buildSymbols.bind(this));
@@ -63,6 +63,7 @@ class SvgBuilder{
 		this.watcher.on( 'all', this.move.bind(this) );
 
 	}
+	
 	buildSymbols( e, where ){
 		where = where.replace(/\\/g, '/');
 		console.log((e.toUpperCase()).bold+' in file '+(where).bold);			
@@ -89,12 +90,13 @@ class SvgBuilder{
 		where = where.replace(/\\/g, '/');
 		glob( paths.project + '/src/SVG/**/*.svg', {ignore:[paths.project + '/src/SVG/symbols/**']}, (er, files)=> {
 			files.forEach(file => {
-				let dest = file.split('/').splice(3).join('/');
-				mkdirp('../dist/svg/'+path.dirname(dest), err =>{
+				let dest = path.parse(file);
+				
+				fs.ensureDir(_.replace(dest.dir, 'src/SVG', 'dist/svg')+'/', err =>{
 					if(err){
 						console.error('ERROR: '.red, err);
 					}else{
-						fs.readFile(file, 'utf8', this.minify.bind(this, dest) );
+						fs.readFile(file, 'utf8', this.minify.bind(this, dest.base) );
 					}
 				});
 			})

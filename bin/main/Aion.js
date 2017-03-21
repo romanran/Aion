@@ -4,7 +4,7 @@ class Aion {
 
 	constructor() {
 		deb('  ______   __                     \r\n \/      \\ |  \\                    \r\n|  $$$$$$\\ \\$$  ______   _______  \r\n| $$__| $$|  \\ \/      \\ |       \\ \r\n| $$    $$| $$|  $$$$$$\\| $$$$$$$\\\r\n| $$$$$$$$| $$| $$  | $$| $$  | $$\r\n| $$  | $$| $$| $$__\/ $$| $$  | $$\r\n| $$  | $$| $$ \\$$    $$| $$  | $$\r\n \\$$   \\$$ \\$$  \\$$$$$$  \\$$   \\$$\r\n                                  \r\n'.red.bold);
-		deb(' ,-- AION task runner initiated --'.green.bold);
+		deb('-- AION task runner initiated --'.green.bold);
 		this.possible = ['js', 'img', 'less', 'svg', 'font'];
 		this.loadConfig();
 		this.loadDeps();
@@ -85,7 +85,8 @@ class Aion {
 				portfinder.basePort = 3000;
 				portfinder.getPort((err, port) => {
 					this.bs_conf.proxy = {
-						target: this.project.path
+						target: this.project.path,
+                         ws: true
 					};
 					this.bs_conf.port = port;
 					this.bs_conf.ui = {

@@ -4,9 +4,10 @@
   "description": "base dev build tool",
   "private": true,
   "scripts": {
-    "postinstall": "node bin/postinstall",
+    "postinstall": "node bin/main/postinstall",
     "test": "test",
     "notify": "node-notifier",
+    "prestart": "npm i",
     "start": "node bin/main/nodemon",
     "restart": "npm start"
   },
@@ -43,7 +44,6 @@
     "less-plugin-glob": "^2.0.0",
     "lodash": "^4.17.4",
     "minimatch": "^3.0.3",
-    "mkdirp": "^0.5.1",
     "multi-glob": "^1.0.1",
     "mutation-watcher": "^1.0.2",
     "node-flag": "^1.5.1",
