@@ -2,17 +2,17 @@ class LessBuilder {
 
     constructor(project) {
 
-        this.bs = require("browser-sync").get(project.name);
+        this.bs = require('browser-sync').get(project.name);
         this.postcss = require('postcss');
         this.hasha = require('hasha');
         this.sprites = require('postcss-sprites');
         this.postcss_size = require('postcss-size');
-        this.mqpacker = require("css-mqpacker");
+        this.mqpacker = require('css-mqpacker');
         const LessPluginCleanCSS = require('less-plugin-clean-css');
         this.updateRule = require('postcss-sprites/lib/core').updateRule;
         this.plugins_list = [new LessPluginCleanCSS({
             advanced: true
-        }), "less-plugin-autoprefix", 'less-plugin-glob', 'less-plugin-functions'];
+        }), 'less-plugin-autoprefix', 'less-plugin-glob', 'less-plugin-functions'];
 
         //set variables and options
         this.timers = {}; //compilation times profilers
@@ -20,9 +20,9 @@ class LessBuilder {
         this.files_hashes = [];
         //postcss options
         this.opts = {
-            stylesheetPath: '../dist/css',
-            spritePath: '../dist/images/sprites',
-            basePath: '../',
+            stylesheetPath: paths.project + '/dist/css',
+            spritePath: paths.project+'/dist/images/sprites',
+            basePath: paths.project,
             relativeTo: 'file',
             filterBy: function (image) {
                 if ((/^.*\/sprites\/.*\.+(jpg|png)$/i.test(image.url))) {
@@ -123,7 +123,7 @@ class LessBuilder {
             .then(output => {
             this.postcss([this.sprites(this.opts), this.postcss_size, this.mqpacker]).process(output.css, {
                 from: 'LESS/' + dest_file + '.less',
-                to: '../dist/css/' + dest_file + '.css',
+                to: paths.project+'/dist/css/' + dest_file + '.css',
                 map: {
                     inline: false,
                     prev: output.map
@@ -135,7 +135,7 @@ class LessBuilder {
                 if (!_.isUndefined(this.files_hashes[dest_file])) {
                     if (current_hash.localeCompare(this.files_hashes[dest_file]) === 0) {
                         //if the hash is the same as before, dont save the file
-                        console.log("No change in file " + dest_file);
+                        console.log('No change in file ' + dest_file);
                         return 0;
                     } else {
                         this.files_hashes[dest_file] = current_hash;
@@ -143,45 +143,45 @@ class LessBuilder {
                 } else {
                     this.files_hashes[dest_file] = current_hash;
                 }
-                if (output.map) fs.writeFileSync("../dist/css/" + dest_file + ".min.css.map", output.map);
+                if (output.map) fs.writeFileSync(paths.project + '/dist/css/' + dest_file + '.min.css.map', output.map);
 
-                fs.writeFile("../dist/css/" + dest_file + ".min.css", output.css, err => {
+                fs.writeFile(paths.project + '/dist/css/' + dest_file + '.min.css', output.css, err => {
                     if (err) {
                         return console.log(err);
                     }
-                    console.log(dest_file + " ✔".green);
+                    console.log(dest_file + ' ✔'.green);
                     let end = Date.now() - this.timers[dest_file];
-                    console.info("Execution time for " + dest_file.bold + " : %dms", end);
+                    console.info('Execution time for ' + dest_file.bold + ' : %dms', end);
                     this.bs.stream({
-                        match: "**/*.css"
+                        match: '**/*.css'
                     });
                     try {
                         if (parseInt(output.messages[0]) > 0) {
                             console.log((output.messages[0].text).italic.green);
                         }
                     } catch (e) {}
-                    console.log(" ");
+                    console.log(' ');
                 });
             });
         },
           err => {
-            console.log(dest_file + " x".red);
+            console.log(dest_file + ' x'.red);
             beep(2);
             try {
-                let filename = typeof (err.filename) !== undefined ? err.filename.split("\\") : err.file.split("\\");
-                filename = filename.splice((filename.length - 2), 2).join("/");
+                let filename = typeof (err.filename) !== undefined ? err.filename.split('\\') : err.file.split('\\');
+                filename = filename.splice((filename.length - 2), 2).join('/');
                 let err_A = [];
-                if ( !_.isUndefined(err.line) ) err_A.push(("\nline:" + err.line+'').bold);
-                if ( !_.isUndefined(err.extract) ) err_A.push("\nextract:" + err.extract);
-                if ( !_.isUndefined(err.reason) ) err_A.push("\nreason:" + err.reason.yellow.bold);
-                if ( !_.isUndefined(err.message) ) err_A.push("\nreason:" + err.message.yellow.bold);
-                let errstr = "";
+                if ( !_.isUndefined(err.line) ) err_A.push(('\nline:' + err.line+'').bold);
+                if ( !_.isUndefined(err.extract) ) err_A.push('\nextract:' + err.extract);
+                if ( !_.isUndefined(err.reason) ) err_A.push('\nreason:' + err.reason.yellow.bold);
+                if ( !_.isUndefined(err.message) ) err_A.push('\nreason:' + err.message.yellow.bold);
+                let errstr = '';
                 for (let i in err_A) {
                     errstr += err_A[i];
                 }
                 console.log(((filename).bold + errstr));
                 notifier.notify({
-                    title: "Error in LESS build for " + filename + ": ",
+                    title: 'Error in LESS build for ' + filename + ': ',
                     message: _.isUndefined(err.message) ? err.reason :err.message
                 });
             } catch (e) {}
@@ -192,17 +192,17 @@ class LessBuilder {
         this.startLess().then(this.watchMain.bind(this));
     }
     watchMain() {
-        console.log("Watching LESS files...".bold);
-        let watcher = chokidar.watch('../src/LESS/**/*.*', this.watcher_opts);
+        console.log('Watching LESS files...'.bold);
+        let watcher = chokidar.watch(paths.project + '/src/LESS/**/*.*', this.watcher_opts);
         watcher.on( 'all', this.build.bind(this) );
     }
     
     build(e, where) {
         if ( where ) {
-            where = where.replace(/\\/g, "/");
-            console.log((e.toUpperCase()).bold + " in file " + (where).bold);
+            where = where.replace(/\\/g, '/');
+            console.log((e.toUpperCase()).bold + ' in file ' + (where).bold);
         }
-        console.log("  ---- POSTCSS/LESS build initialized ----   ".bgYellow.black);
+        console.log('  ---- POSTCSS/LESS build initialized ----   '.bgYellow.black);
 
         asynch.series([ (end) => {
             let f_l = this.compile_files.length;
@@ -221,7 +221,7 @@ class LessBuilder {
         },
        (end) => {
            this.compile_files.forEach(file => {
-               let dest_file = file.substring(file.lastIndexOf("/") + 1, file.lastIndexOf("."));
+               let dest_file = file.substring(file.lastIndexOf('/') + 1, file.lastIndexOf('.'));
                if (!file.localeCompare(where)) {
                    //if its a new file, not in the main glob, read the new file
                    fs.readFile(file, 'utf8', (err, data) => {
@@ -245,7 +245,7 @@ class LessBuilder {
             this.cached_files = [];
             asynch.series({
                 cacheFiles: done => {
-                    glob("../src/LESS/*.less", (er, files) => {
+                    glob(paths.project + '/src/LESS/*.less', (er, files) => {
                         let total_files_num = files.length,
                             i = 0;
                         files.forEach( file => {
@@ -268,11 +268,11 @@ class LessBuilder {
                             this.plugins.push(this.plugins_list[i]);
                         } else {
                             //load plugin by name
-                            let plugin = plugin_loader.tryLoadPlugin( this.plugins_list[i], "" );
+                            let plugin = plugin_loader.tryLoadPlugin( this.plugins_list[i], '' );
                             if (plugin) {
                                 this.plugins.push(plugin);
                             } else {
-                                console.error("Unable to load plugin " + plugin + " please make sure that it is installed under or at the same level as less");
+                                console.error('Unable to load plugin ' + plugin + ' please make sure that it is installed under or at the same level as less');
                                 continue;
                             }
                         }

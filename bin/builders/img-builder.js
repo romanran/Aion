@@ -12,14 +12,14 @@ class ImgBuilder{
 		};
 	}
 	watchAll(){
-		let watcher = chokidar.watch('../src/IMG/*.{jpg,jpeg,png}', this.watcher_opts);
-		console.log("Watching IMAGE files...".bold);
+		let watcher = chokidar.watch( paths.project + '/src/IMG/*.{jpg,jpeg,png}', this.watcher_opts);
+		console.log('Watching IMAGE files...'.bold);
 		watcher.on('all', this.build.bind(this));
 	}
 	
 	build(e, where){
-		console.log("  ---- IMAGES build initialized ----   ".bgBlue.bold);
-		this.imagemin(['../src/IMG/*.{jpg,jpeg,png}'], '../dist/images', {
+		console.log('  ---- IMAGES build initialized ----   '.bgBlue.bold);
+		this.imagemin([ paths.project +'/src/IMG/*.{jpg,jpeg,png}'], '../dist/images', {
 			plugins: [
 				this.imageminMozjpeg(),
 				this.imageminPngquant({quality: '65-80'})
@@ -27,14 +27,14 @@ class ImgBuilder{
 		}).then(files => {
 			let total = 0;
 			for(let i =0, l = files.length; i < l; i++){
-				let src = "../src/IMG/"+path.basename( files[i].path );
-				let src_s = fs.statSync(src)["size"];
-				let src_dest = fs.statSync(files[i].path)["size"];
+				let src = paths.project + '/src/IMG/'+path.basename( files[i].path );
+				let src_s = fs.statSync(src)['size'];
+				let src_dest = fs.statSync(files[i].path)['size'];
 				let saved = parseInt((src_s - src_dest )/ 1024);
-				console.log("  "+path.basename(files[i].path)+" ✔".green +" saved: "+(saved+"kB").bold);
+				console.log('  '+path.basename(files[i].path)+' ✔'.green +' saved: '+(saved+'kB').bold);
 				total += saved;
 			}
-			console.log("  Sum of space saved: "+(total+"kB").bold.green);
+			console.log('  Sum of space saved: '+(total+'kB').bold.green);
 		});	
 	}
 }

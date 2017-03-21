@@ -17,7 +17,7 @@ class SvgBuilder{
 		};
 		this.watcher_opts = {
 			ignoreInitial: true,
-			ignored: '../src/SVG/symbols/**',
+			ignored: paths.project + '/src/SVG/symbols/**',
 			awaitWriteFinish:{
 				stabilityThreshold: 50,//(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
 				pollInterval:20 // (default: 100). File size polling interval.
@@ -36,7 +36,7 @@ class SvgBuilder{
 
 	minify(dest, err, data){
 		if(err){
-			console.log("ERROR".red, err);
+			console.log('ERROR'.red, err);
 			return 1;
 		}
 		this.svgo.optimize(data, result => {
@@ -44,19 +44,19 @@ class SvgBuilder{
 				console.log((result.error+'').red);
 				return false;
 			}
-			fs.writeFile("../dist/svg/"+dest, result.data, (err) => {
+			fs.writeFile(paths.project + '/dist/svg/'+dest, result.data, (err) => {
 			  if (err) throw err;
-				console.log(dest+" file minified");
+				console.log(dest+' file minified');
 			});
 		});
 	}
 	
 	watchAll(){
 		
-		console.log("Watching SVG files...".bold);
+		console.log('Watching SVG files...'.bold);
 		
-		this.watcher = chokidar.watch('../src/SVG/*.svg', this.watcher_opts);
-		this.symbols_watcher = chokidar.watch('../src/SVG/symbols/*.svg', this.symbol_watcher_opts);
+		this.watcher = chokidar.watch(paths.project + '/src/SVG/*.svg', this.watcher_opts);
+		this.symbols_watcher = chokidar.watch(paths.project + '/src/SVG/symbols/*.svg', this.symbol_watcher_opts);
 		
 		this.symbols_watcher.on('all', this.buildSymbols.bind(this));
 		
@@ -64,17 +64,17 @@ class SvgBuilder{
 
 	}
 	buildSymbols( e, where ){
-		where = where.replace(/\\/g, "/");
-		console.log((e.toUpperCase()).bold+" in file "+(where).bold);			
-		console.log("  ---- SVG SYMBOLS build initialized ----   ".bgWhite.black);
+		where = where.replace(/\\/g, '/');
+		console.log((e.toUpperCase()).bold+' in file '+(where).bold);			
+		console.log('  ---- SVG SYMBOLS build initialized ----   '.bgWhite.black);
 
 		let sprites = this.svgstore( this.opts );
-		glob( "../src/SVG/symbols/*.svg", (er, files) => {
+		glob( paths.project + '/src/SVG/symbols/*.svg', (er, files) => {
 			files.forEach(file => {
 				sprites.add(path.basename(file, '.svg'), fs.readFileSync(file, 'utf8'));
 			});
-//			fs.writeFile("../dist/svg/symbols.min.svg", sprites.toString());
-			this.minify("symbols.min.svg", null, sprites.toString());
+//			fs.writeFile('../dist/svg/symbols.min.svg', sprites.toString());
+			this.minify('symbols.min.svg', null, sprites.toString());
 		} );
 		
 	}
@@ -85,14 +85,14 @@ class SvgBuilder{
 	}
 	
 	move( e, where ){
-		console.log("  ---- SVG moving initialized ----   ".bgWhite.black);
-		where = where.replace(/\\/g, "/");
-		glob( "../src/SVG/**/*.svg", {ignore:['../src/SVG/symbols/**']}, (er, files)=> {
+		console.log('  ---- SVG moving initialized ----   '.bgWhite.black);
+		where = where.replace(/\\/g, '/');
+		glob( paths.project + '/src/SVG/**/*.svg', {ignore:[paths.project + '/src/SVG/symbols/**']}, (er, files)=> {
 			files.forEach(file => {
-				let dest = file.split("/").splice(3).join("/");
-				mkdirp("../dist/svg/"+path.dirname(dest), err =>{
+				let dest = file.split('/').splice(3).join('/');
+				mkdirp('../dist/svg/'+path.dirname(dest), err =>{
 					if(err){
-						console.error("ERROR: ".red, err);
+						console.error('ERROR: '.red, err);
 					}else{
 						fs.readFile(file, 'utf8', this.minify.bind(this, dest) );
 					}
