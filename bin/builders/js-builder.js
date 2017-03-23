@@ -2,7 +2,9 @@ class JsBuilder {
 
 	constructor(project) {
 		this.project = project;
-		this.bs = require('browser-sync').get(this.project.name);
+        try{
+		  this.bs = require('browser-sync').get(this.project.name);
+        }catch(e){}
 		this.babel = require('babel-core');
 		this.es2015 = require('babel-preset-es2015');
 		this.browserify = require('browserify');
@@ -58,7 +60,9 @@ class JsBuilder {
 		this.data = '';
 		this.data_src = '';
 
-		this.q.then(this.saveData.bind(this)); //when all files are transpalide
+		this.q.then(this.saveData.bind(this)).catch(e=>{
+            console.log(e);   
+        }); //when all files are transpalide
 	}
 
 	compile(files_l, file, i, finish) {
@@ -87,10 +91,13 @@ class JsBuilder {
 			}, (err, result) => {
 				if (err) {
 					beep(2);
-					this.err_count++;
-					if (err.loc) {
+//					this.err_count++;
+					if (err.hasOwnProperty('loc')) {
 						//show build error
-						let err_type = err.stack.substr(0, err.stack.indexOf(': '));
+                        let err_type = 'unknown';
+                        if(err.hasOwnProperty('stack')){
+                            err_type = err.stack.substr(0, err.stack.indexOf(': '));
+                        }
 
 						console.log((err_type).red + ' in file ' + (file).bold);
 						console.log('line: ' + (err.loc.line + '').bold, 'pos: ' + (err.loc.column + '').bold);
@@ -121,11 +128,11 @@ class JsBuilder {
 			fromString: true
 		});
 
-		let data_src_min = this.jsmin.api({
-			source: this.data_src,
-			lang: 'javascript',
-			mode: 'minify'
-		});
+//		let data_src_min = this.jsmin.api({
+//			source: this.data_src,
+//			lang: 'javascript',
+//			mode: 'minify'
+//		});
 
 		let showError = function (e) {
 			console.log((e).red);

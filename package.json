@@ -9,7 +9,8 @@
     "notify": "node-notifier",
     "prestart": "npm i",
     "start": "node bin/main/nodemon",
-    "restart": "npm start"
+    "restart": "npm start",
+    "build": "node bin/operators/build"
   },
   "repository": {
     "type": "git",

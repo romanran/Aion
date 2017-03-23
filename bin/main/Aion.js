@@ -103,7 +103,8 @@ class Aion {
 		if (_.indexOf(this.possible, type) >= 0 || _.isUndefined(type)) {
 			switch (type) {
 				case this.possible[0]:
-					new this.JsBuilder(this.project).build();
+//					new this.JsBuilder(this.project).build();
+					new this.JsBuilder(this.project).compileAll();
 					break;
 				case this.possible[1]:
 					new this.ImgBuilder(this.project).build();
