@@ -69,7 +69,7 @@ class Aion {
 			if (this.project.server) {
 				const nodemon = require('nodemon');
 				nodemon({
-					script: project.path,
+					script: this.project.path,
 					stdout: true,
 					watch: [paths.project + '/app/**/*.*', paths.project + '/app/server.js'],
 					exitcrash: 'main.js'
