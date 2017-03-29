@@ -13,7 +13,6 @@ class JsBuilder {
 
 		this.watcher_opts = {
 			ignoreInitial: true,
-			ignored: '',
 			awaitWriteFinish: {
 				stabilityThreshold: 100, //(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
 				pollInterval: 10 // (default: 100). File size polling interval.
