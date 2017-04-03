@@ -3,7 +3,7 @@
 	"bs": "{{browsersync}}",
 	"server": "{{server}}",
 	"path": "localhost/{{project_name}}",
-    "type": "{{type}}"
+    "type": "{{type}}",
 	"breakpoints": [
 		{"phone-xs": 375},
 		{"phone-s": 420},

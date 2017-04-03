@@ -83,6 +83,11 @@ class Aion {
 				const bs = require("browser-sync").create(this.project.name);
 				const ip = require('ip');
 				const portscanner = require('portscanner');
+				const Spinner = require('cli-spinner').Spinner;
+ 
+				let spinner = new Spinner('Starting Browser-sync %s'.cyan.bold);
+				spinner.setSpinnerString(18);
+				spinner.start();
 				
 				let this_ip = ip.address();
 				portscanner.findAPortNotInUse(3000, 3100, this_ip,(err, port) => {
@@ -93,7 +98,11 @@ class Aion {
 					this.bs_conf.host = this_ip;
 					this.bs_conf.port = port;
 					let bs_process = bs.init(this.bs_conf);
-					bs_process.emitter.on("init", res);
+					bs_process.emitter.on("init", ()=>{
+						deb('');
+						spinner.stop(true);
+						res();
+					});
 				});
 			}
 		});
