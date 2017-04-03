@@ -4,11 +4,11 @@
   "description": "base dev build tool",
   "private": true,
   "scripts": {
-    "postinstall": "node bin/postinstall",
+    "postinstall": "node bin/main/postinstall",
     "test": "test",
     "notify": "node-notifier",
     "prestart": "npm i",
-    "start": "node bin/nodemon",
+    "start": "node bin/main/nodemon",
     "restart": "npm start"
   },
   "repository": {
@@ -44,9 +44,9 @@
     "less-plugin-glob": "^2.0.0",
     "lodash": "^4.17.4",
     "minimatch": "^3.0.3",
-    "mkdirp": "^0.5.1",
     "multi-glob": "^1.0.1",
     "mutation-watcher": "^1.0.2",
+    "node-flag": "^1.5.1",
     "node-notifier": "^4.6.1",
     "nodemon": "^1.11.0",
     "parallelshell": "^2.0.0",
@@ -58,7 +58,6 @@
     "prettydiff": "^99.0.1",
     "prompt": "^1.0.0",
     "strip-debug": "^1.1.1",
-    "stripcolorcodes": "^0.1.0",
     "svgmin": "^0.1.0",
     "svgo": "^0.7.1",
     "svgstore": "^2.0.2",
