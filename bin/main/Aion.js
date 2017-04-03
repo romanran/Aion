@@ -10,10 +10,10 @@ class Aion {
 		this.loadDeps();
 	}
 
-	static checkConfig(){
+	static checkConfig() {
 		return fs.stat(paths.project + '/src/config.json', (err, stat) => {
 			if (err) {
-				if(err.code== 'ENOENT'){
+				if (err.code == 'ENOENT') {
 					deb('No config file!'.red.bold);
 					return 1;
 				}
@@ -65,7 +65,7 @@ class Aion {
 	}
 
 	serve() {
-		return new Promise( (res, rej) => {
+		return new Promise((res, rej) => {
 			if (this.project.server) {
 				const nodemon = require('nodemon');
 				nodemon({
@@ -78,22 +78,31 @@ class Aion {
 				});
 				res();
 			}
-			
+
 			if (this.project.bs) {
 				const bs = require("browser-sync").create(this.project.name);
-				const portfinder = require('portfinder');
-				portfinder.basePort = 3000;
-				portfinder.getPort((err, port) => {
+				const ip = require('ip');
+				const portscanner = require('portscanner');
+				const Spinner = require('cli-spinner').Spinner;
+ 
+				let spinner = new Spinner('Starting Browser-sync %s'.cyan.bold);
+				spinner.setSpinnerString(18);
+				spinner.start();
+				
+				let this_ip = ip.address();
+				portscanner.findAPortNotInUse(3000, 3100, this_ip,(err, port) => {
 					this.bs_conf.proxy = {
 						target: this.project.path,
-                         ws: true
+						ws: true
 					};
+					this.bs_conf.host = this_ip;
 					this.bs_conf.port = port;
-					this.bs_conf.ui = {
-						port: port + 1
-					};
-					bs.init(this.bs_conf);
-					res();
+					let bs_process = bs.init(this.bs_conf);
+					bs_process.emitter.on("init", ()=>{
+						deb('');
+						spinner.stop(true);
+						res();
+					});
 				});
 			}
 		});
