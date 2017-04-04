@@ -142,9 +142,8 @@ class LessBuilder {
                             if (output.map) fs.writeFileSync(paths.project + '/dist/css/' + dest_file + '.css.map', output.map);
 
                             fs.writeFile(paths.project + '/dist/css/' + dest_file + '.min.css', output.css, err => {
-                                if (err) {
-                                    return console.log(err);
-                                }
+                                if(handleError(err)) return 0;
+                                
                                 console.log(dest_file + ' ✔'.green);
                                 let end = Date.now() - this.timers[dest_file];
                                 console.info('Execution time for ' + dest_file.bold + ' : %dms', end);

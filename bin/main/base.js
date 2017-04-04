@@ -10,7 +10,7 @@ const notifier = require('node-notifier');
 const asynch = require('async');
 const Spinner = require('cli-spinner').Spinner;
 
-const deb = function(s) {
+const deb = function (s) {
 	console.log.apply(console, arguments);
 }
 
@@ -18,6 +18,18 @@ const stopTimer = function (file) {
 	console.timeEnd("exec time for " + file);
 };
 const paths = require(path.resolve('./bin/config/paths.js'));
+
+const handleError = function (err) {
+	if(_.isEmpty(err)){
+		return 0;
+	}
+	if (_.hasIn(err, 'message')) {
+		err = err.message;
+	}
+	err = _.toString(err);
+	console.log(err.bold.red);
+	return 1;
+}
 
 module.exports = function () {
 	this.colors = colors;
@@ -33,5 +45,6 @@ module.exports = function () {
 	this._ = lodash;
 	this.paths = paths;
 	this.deb = deb;
+	this.handleError = handleError;
 	this.Spinner = Spinner;
 };

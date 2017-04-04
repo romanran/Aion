@@ -201,12 +201,9 @@ class JsBuilder {
 	}
 
 	libsFinish() {
-		fs.writeFile(paths.project + '/dist/js/libs.js', _.toString(this.libs_data), 'utf8', (e) => {
-			if (e !== null) {
-				console.log(_.toString(e).red);
-			} else {
-				console.log('js libraries saved ✔'.green);
-			}
+		fs.writeFile(paths.project + '/dist/js/libs.js', _.toString(this.libs_data), 'utf8', err => {
+			if(handleError(err)) return 0;
+			console.log('js libraries saved ✔'.green);
 		});
 
 		console.log('Minifying compiled libraries...'.bold);
@@ -214,13 +211,10 @@ class JsBuilder {
 			fromString: true
 		});
 		
-		fs.writeFile(paths.project + '/dist/js/libs.min.js', data_min.code, 'utf8', (e) => {
-			if (e !== null) {
-				console.log((e).red);
-			} else {
-				console.log('js minified libraries saved ✔'.green);
-				console.timeEnd('js libs build time');
-			}
+		fs.writeFile(paths.project + '/dist/js/libs.min.js', data_min.code, 'utf8', err => {
+			if(handleError(err)) return 0;
+			console.log('js minified libraries saved ✔'.green);
+			console.timeEnd('js libs build time');
 		});
 	}
 
