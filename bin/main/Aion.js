@@ -80,34 +80,57 @@ class Aion {
 					nodemon.emit('restart');
 				});
 				res();
-			}
-
-			if (this.project.bs) {
-				const bs = require("browser-sync").create(this.project.name);
+			} else if (this.project.bs) {
+				this.bs = require("browser-sync").create(this.project.name);
 				const ip = require('ip');
 				const portscanner = require('portscanner');
- 
+
 				let spinner = new Spinner('Starting Browser-sync %s'.cyan.bold);
 				spinner.setSpinnerString(18);
 				spinner.start();
-				
+
 				let this_ip = ip.address();
-				portscanner.findAPortNotInUse(3000, 3100, this_ip,(err, port) => {
+				portscanner.findAPortNotInUse(3000, 3100, this_ip, (err, port) => {
 					this.bs_conf.proxy = {
 						target: this.project.path,
 						ws: true
 					};
 					this.bs_conf.host = this_ip;
 					this.bs_conf.port = port;
-					let bs_process = bs.init(this.bs_conf);
-					bs_process.emitter.on("init", ()=>{
+					this.bs_process = this.bs.init(this.bs_conf);
+					this.bs_process.emitter.on("init", () => {
 						deb('');
 						spinner.stop(true);
 						res();
 					});
 				});
+			} else {
+				res();
 			}
 		});
+	}
+
+	eventHandler() {
+		const Interface = require('./Interface.js');
+		const commander = new Interface;
+		commander.start();
+		commander.emitter.on('input', command => {
+			switch (command) {
+				case 's':
+				case 'stop':
+					this.stopWatch();
+					break;
+			}
+		});
+	}
+	stopWatch() {
+		if (this.project.bs) {
+			if (this.bs.paused) {
+				this.bs.resume();
+			} else {
+				this.bs.pause();
+			}
+		}
 	}
 
 	build(type) {
@@ -115,7 +138,7 @@ class Aion {
 			let builder = {};
 			switch (type) {
 				case this.possible[0]:
-//					new this.JsBuilder(this.project).build();
+					//					new this.JsBuilder(this.project).build();
 					builder = new this.JsBuilder(this.project);
 					builder.buildAll();
 					break;
@@ -139,7 +162,7 @@ class Aion {
 					_.forEach(this.possible, this.build.bind(this));
 					break;
 			}
-			
+
 		}
 	}
 }

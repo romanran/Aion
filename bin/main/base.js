@@ -20,7 +20,7 @@ const stopTimer = function (file) {
 const paths = require(path.resolve('./bin/config/paths.js'));
 
 const handleError = function (err) {
-	if(_.isEmpty(err)){
+	if(!err){
 		return 0;
 	}
 	if (_.hasIn(err, 'message')) {
