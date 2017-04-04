@@ -59,7 +59,6 @@ class Aion {
 				default:
 					_.forEach(this.possible, this.watch.bind(this));
 					break;
-
 			}
 		}
 	}
