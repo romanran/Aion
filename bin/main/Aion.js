@@ -5,7 +5,7 @@ class Aion {
 	constructor() {
 		deb('  ______   __                     \r\n \/      \\ |  \\                    \r\n|  $$$$$$\\ \\$$  ______   _______  \r\n| $$__| $$|  \\ \/      \\ |       \\ \r\n| $$    $$| $$|  $$$$$$\\| $$$$$$$\\\r\n| $$$$$$$$| $$| $$  | $$| $$  | $$\r\n| $$  | $$| $$| $$__\/ $$| $$  | $$\r\n| $$  | $$| $$ \\$$    $$| $$  | $$\r\n \\$$   \\$$ \\$$  \\$$$$$$  \\$$   \\$$\r\n                                  \r\n'.red.bold);
 		deb('-- AION task runner initiated --'.green.bold);
-		this.possible = ['js', 'img', 'less', 'svg', 'font'];
+		this.possible = ['js', 'img', 'css', 'svg', 'font'];
 		this.loadConfig();
 		this.loadDeps();
 	}
@@ -83,7 +83,6 @@ class Aion {
 				const bs = require("browser-sync").create(this.project.name);
 				const ip = require('ip');
 				const portscanner = require('portscanner');
-				const Spinner = require('cli-spinner').Spinner;
  
 				let spinner = new Spinner('Starting Browser-sync %s'.cyan.bold);
 				spinner.setSpinnerString(18);
@@ -110,28 +109,31 @@ class Aion {
 
 	build(type) {
 		if (_.indexOf(this.possible, type) >= 0 || _.isUndefined(type)) {
+			let builder = {};
 			switch (type) {
 				case this.possible[0]:
 //					new this.JsBuilder(this.project).build();
-					new this.JsBuilder(this.project).compileAll();
+					builder = new this.JsBuilder(this.project);
+					builder.buildAll();
 					break;
 				case this.possible[1]:
-					new this.ImgBuilder(this.project).build();
+					builder = new this.ImgBuilder(this.project);
 					break;
 				case this.possible[2]:
-					new this.LessBuilder(this.project).build();
+					builder = new this.LessBuilder(this.project);
+					builder.startLess().then(builder.build.bind(builder));
 					break;
 				case this.possible[3]:
-					new this.SvgBuilder(this.project).build();
+					builder = new this.SvgBuilder(this.project);
 					break;
 				case this.possible[4]:
-					new this.FontBuilder(this.project).build();
+					builder = new this.FontBuilder(this.project);
 					break;
 				default:
 					_.forEach(this.possible, this.build.bind(this));
 					break;
-
 			}
+			
 		}
 	}
 }

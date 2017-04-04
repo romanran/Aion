@@ -8,6 +8,7 @@ const beep = require('beepbeep');
 const chokidar = require('chokidar');
 const notifier = require('node-notifier');
 const asynch = require('async');
+const Spinner = require('cli-spinner').Spinner;
 
 const deb = function(s) {
 	console.log.apply(console, arguments);
@@ -32,4 +33,5 @@ module.exports = function () {
 	this._ = lodash;
 	this.paths = paths;
 	this.deb = deb;
+	this.Spinner = Spinner;
 };
