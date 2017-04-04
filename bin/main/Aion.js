@@ -118,7 +118,7 @@ class Aion {
 					break;
 				case this.possible[1]:
 					builder = new this.ImgBuilder(this.project);
-					builder.buildAll();
+					builder.build();
 					break;
 				case this.possible[2]:
 					builder = new this.LessBuilder(this.project);
