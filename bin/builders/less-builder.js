@@ -1,6 +1,7 @@
 class LessBuilder {
 
     constructor(project) {
+        this.project = project;
         this.postcss = require('postcss');
         this.hasha = require('hasha');
         this.sprites = require('postcss-sprites');
@@ -186,7 +187,7 @@ class LessBuilder {
     };
 
     watchAll() {
-        this.bs = require('browser-sync').get(project.name);
+        this.bs = require('browser-sync').get(this.project.name);
         this.startLess().then(this.watchMain.bind(this));
     }
     watchMain() {
