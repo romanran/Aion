@@ -118,6 +118,7 @@ class Aion {
 					break;
 				case this.possible[1]:
 					builder = new this.ImgBuilder(this.project);
+					builder.buildAll();
 					break;
 				case this.possible[2]:
 					builder = new this.LessBuilder(this.project);
@@ -125,9 +126,11 @@ class Aion {
 					break;
 				case this.possible[3]:
 					builder = new this.SvgBuilder(this.project);
+					builder.buildAll();
 					break;
 				case this.possible[4]:
 					builder = new this.FontBuilder(this.project);
+					builder.buildAll();
 					break;
 				default:
 					_.forEach(this.possible, this.build.bind(this));
