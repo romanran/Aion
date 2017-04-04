@@ -9,7 +9,13 @@
     "notify": "node-notifier",
     "prestart": "npm i",
     "start": "node bin/main/nodemon",
-    "restart": "npm start"
+    "restart": "npm start",
+    "build:all": "node bin/operators/build --build all",
+    "build:js": "node bin/operators/build --build js",
+    "build:css": "node bin/operators/build --build css",
+    "build:svg": "node bin/operators/build --build svg",
+    "build:img": "node bin/operators/build --build img",
+    "build:font": "node bin/operators/build --build font"
   },
   "repository": {
     "type": "git",

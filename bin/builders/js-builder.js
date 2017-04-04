@@ -2,7 +2,6 @@ class JsBuilder {
 
 	constructor(project) {
 		this.project = project;
-		this.bs = require('browser-sync').get(this.project.name);
 		this.babel = require('babel-core');
 		this.es2015 = require('babel-preset-es2015');
 		this.browserify = require('browserify');
@@ -21,11 +20,12 @@ class JsBuilder {
 	}
 
 	watchAll() {
+		 this.bs = require('browser-sync').get(this.project.name);
+		
 		let watcher = chokidar.watch(paths.project + '/src/JS/**/*.js', this.watcher_opts);
 		console.log('Watching JS files...'.bold);
 		watcher.on('all', (e, where) => {
 			console.log(e.yellow.bold + ' in ' + path.basename(where).bold + ', starting build...');
-			console.time('build time');
 			if (where.indexOf('wp-admin') >= 0) {
 				this.target_name = 'wp-admin';
 				glob(['../src/JS/wp-admin/wp-admin.js', '../src/JS/wp-admin/**/*.js'], this.compileAll.bind(this));
@@ -37,8 +37,21 @@ class JsBuilder {
 
 		this.watchLibs();
 	}
+	
+	buildAll(){
+		this.target_name = 'all';
+		glob([paths.project + '/src/JS/main/main.js', paths.project + '/src/JS/main/*.js', '!' + paths.project + '/src/JS/wp-admin/**/*.js', paths.project + '/src/JS/**/*.js'], (err, files) => {
+			this.compileAll(err, files);
+			this.q.then(()=>{
+				this.target_name = 'wp-admin';
+				glob(['../src/JS/wp-admin/wp-admin.js', '../src/JS/wp-admin/**/*.js'], this.compileAll.bind(this));
+			});
+		});
+		this.buildLibs();
+	}
 
 	compileAll(err, files) {
+		console.time('build time');
 		let promise = {
 			resolve: '',
 			reject: ''
@@ -57,7 +70,9 @@ class JsBuilder {
 		this.data = '';
 		this.data_src = '';
 
-		this.q.then(this.saveData.bind(this)); //when all files are transpalide
+		this.q.then(this.saveData.bind(this)).catch(e=>{
+            console.log(e);   
+        }); //when all files are transpalide
 	}
 
 	compile(files_l, file, i, finish) {
@@ -86,10 +101,13 @@ class JsBuilder {
 			}, (err, result) => {
 				if (err) {
 					beep(2);
-					this.err_count++;
-					if (err.loc) {
+//					this.err_count++;
+					if (err.hasOwnProperty('loc')) {
 						//show build error
-						let err_type = err.stack.substr(0, err.stack.indexOf(': '));
+                        let err_type = 'unknown';
+                        if(err.hasOwnProperty('stack')){
+                            err_type = err.stack.substr(0, err.stack.indexOf(': '));
+                        }
 
 						console.log((err_type).red + ' in file ' + (file).bold);
 						console.log('line: ' + (err.loc.line + '').bold, 'pos: ' + (err.loc.column + '').bold);
@@ -120,11 +138,11 @@ class JsBuilder {
 			fromString: true
 		});
 
-		let data_src_min = this.jsmin.api({
-			source: this.data_src,
-			lang: 'javascript',
-			mode: 'minify'
-		});
+//		let data_src_min = this.jsmin.api({
+//			source: this.data_src,
+//			lang: 'javascript',
+//			mode: 'minify'
+//		});
 
 		let showError = function (e) {
 			console.log((e).red);
@@ -138,8 +156,8 @@ class JsBuilder {
 				console.timeEnd('build time');
 			}
 		}
-		fs.writeFile(paths.project + '/dist/js/all.js', this.data, 'utf8', handleAfter.bind(null, true));
-		fs.writeFile(paths.project + '/dist/js/all.min.js', data_min.code, 'utf8', handleAfter.bind(null, false));
+		fs.writeFile(paths.project + '/dist/js/' + this.target_name + '.js', this.data, 'utf8', handleAfter.bind(null, true));
+		fs.writeFile(paths.project + '/dist/js/' + this.target_name + '.min.js', data_min.code, 'utf8', handleAfter.bind(null, false));
 		//		fs.writeFile('../dist/js/all_es6.min.js', data_src_min, 'utf8', handleAfter.bind(null, false));
 	}
 
@@ -161,11 +179,13 @@ class JsBuilder {
 		try {
 			g = b.bundle().on('error', (e) => {
 				notifier.notify({
-					message: 'Error: ' + e.stack,
+					message: 'Error: ' + e.message,
 					title: 'Failed running browserify'
 				});
-				this.bs.notify('<span style="color: red">Failed running browserify</span>');
-				console.warn(e.message.red.bold);
+				console.warn(e.message.bold.red);
+				if(!_.isUndefined(this.bs)){
+					this.bs.notify('<span style="color: red">Failed running browserify</span>');
+				}
 			});
 		} catch (e) {
 			console.log(e);
@@ -181,12 +201,9 @@ class JsBuilder {
 	}
 
 	libsFinish() {
-		fs.writeFile(paths.project + '/dist/js/libs.js', _.toString(this.libs_data), 'utf8', (e) => {
-			if (e !== null) {
-				console.log(_.toString(e).red);
-			} else {
-				console.log('js libraries saved ✔'.green);
-			}
+		fs.writeFile(paths.project + '/dist/js/libs.js', _.toString(this.libs_data), 'utf8', err => {
+			if(handleError(err)) return 0;
+			console.log('js libraries saved ✔'.green);
 		});
 
 		console.log('Minifying compiled libraries...'.bold);
@@ -194,13 +211,10 @@ class JsBuilder {
 			fromString: true
 		});
 		
-		fs.writeFile(paths.project + '/dist/js/libs.min.js', data_min.code, 'utf8', (e) => {
-			if (e !== null) {
-				console.log((e).red);
-			} else {
-				console.log('js minified libraries saved ✔'.green);
-				console.timeEnd('js libs build time');
-			}
+		fs.writeFile(paths.project + '/dist/js/libs.min.js', data_min.code, 'utf8', err => {
+			if(handleError(err)) return 0;
+			console.log('js minified libraries saved ✔'.green);
+			console.timeEnd('js libs build time');
 		});
 	}
 

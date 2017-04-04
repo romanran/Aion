@@ -1,8 +1,6 @@
 class LessBuilder {
 
     constructor(project) {
-
-        this.bs = require('browser-sync').get(project.name);
         this.postcss = require('postcss');
         this.hasha = require('hasha');
         this.sprites = require('postcss-sprites');
@@ -21,7 +19,7 @@ class LessBuilder {
         //postcss options
         this.opts = {
             stylesheetPath: paths.project + '/dist/css',
-            spritePath: paths.project+'/dist/images/sprites',
+            spritePath: paths.project + '/dist/images/sprites',
             basePath: paths.project,
             relativeTo: 'file',
             filterBy: function (image) {
@@ -82,7 +80,7 @@ class LessBuilder {
                 pollInterval: 10 // (default: 100). File size polling interval.
             }
         };
-        
+
         this.less_options = {
             filename: null,
             depends: false,
@@ -97,110 +95,114 @@ class LessBuilder {
             strictMath: true,
             strictUnits: false,
             urlArgs: '',
-            sourceMap: {sourceMapFileInline: false}
+            sourceMap: {
+                sourceMapFileInline: false
+            }
         };
 
         this.compile_files = [];
         this.compilers = [];
         this.plugins = [];
     }
-    
+
     //compilation function
     dataReady(file, dest_file, err, data) {
         if (err !== null) {
             console.warn(err);
             return 0;
         }
-        
+
         this.less_options.filename = path.resolve(file);
 
         this.compilers[file].render(data, this.less_options)
             .then(output => {
-            this.postcss([this.sprites(this.opts), this.postcss_size, this.mqpacker]).process(output.css, {
-                from: 'LESS/' + dest_file + '.less', 
-                to: paths.project+'/dist/css/' + dest_file + '.css',
-                map: {
-                    inline: false,
-                    prev: output.map
-                }
-            })
-                .then(output => {
-                //check files hash
-                output.css += '/*# sourceMappingURL='+dest_file+'.css.map */';
-                let current_hash = this.hasha(output.css);
-                if (!_.isUndefined(this.files_hashes[dest_file])) {
-                    if (current_hash.localeCompare(this.files_hashes[dest_file]) === 0) {
-                        //if the hash is the same as before, dont save the file
-                        console.log('No change in file ' + dest_file);
-                        return 0;
-                    } else {
-                        this.files_hashes[dest_file] = current_hash;
-                    }
-                } else {
-                    this.files_hashes[dest_file] = current_hash;
-                }
-                if (output.map) fs.writeFileSync(paths.project + '/dist/css/' + dest_file + '.css.map', output.map);
+                    this.postcss([this.sprites(this.opts), this.postcss_size, this.mqpacker]).process(output.css, {
+                            from: 'LESS/' + dest_file + '.less',
+                            to: paths.project + '/dist/css/' + dest_file + '.css',
+                            map: {
+                                inline: false,
+                                prev: output.map
+                            }
+                        })
+                        .then(output => {
+                            //check files hash
+                            output.css += '/*# sourceMappingURL=' + dest_file + '.css.map */';
+                            let current_hash = this.hasha(output.css);
+                            if (!_.isUndefined(this.files_hashes[dest_file])) {
+                                if (current_hash.localeCompare(this.files_hashes[dest_file]) === 0) {
+                                    //if the hash is the same as before, dont save the file
+                                    console.log('No change in file ' + dest_file);
+                                    return 0;
+                                } else {
+                                    this.files_hashes[dest_file] = current_hash;
+                                }
+                            } else {
+                                this.files_hashes[dest_file] = current_hash;
+                            }
+                            if (output.map) fs.writeFileSync(paths.project + '/dist/css/' + dest_file + '.css.map', output.map);
 
-                fs.writeFile(paths.project + '/dist/css/' + dest_file + '.min.css', output.css, err => {
-                    if (err) {
-                        return console.log(err);
-                    }
-                    console.log(dest_file + ' ✔'.green);
-                    let end = Date.now() - this.timers[dest_file];
-                    console.info('Execution time for ' + dest_file.bold + ' : %dms', end);
-                    this.bs.stream({
-                        match: '**/*.css'
-                    });
+                            fs.writeFile(paths.project + '/dist/css/' + dest_file + '.min.css', output.css, err => {
+                                if(handleError(err)) return 0;
+                                
+                                console.log(dest_file + ' ✔'.green);
+                                let end = Date.now() - this.timers[dest_file];
+                                console.info('Execution time for ' + dest_file.bold + ' : %dms', end);
+                                if (!_.isUndefined(this.bs)) {
+                                    this.bs.stream({
+                                        match: '**/*.css'
+                                    });
+                                }
+                                try {
+                                    if (parseInt(output.messages[0]) > 0) {
+                                        console.log((output.messages[0].text).italic.green);
+                                    }
+                                } catch (e) {}
+                                console.log(' ');
+                            });
+                        });
+                },
+                err => {
+                    console.log(dest_file + ' x'.red);
+                    beep(2);
                     try {
-                        if (parseInt(output.messages[0]) > 0) {
-                            console.log((output.messages[0].text).italic.green);
+                        let filename = typeof (err.filename) !== undefined ? err.filename.split('\\') : err.file.split('\\');
+                        filename = filename.splice((filename.length - 2), 2).join('/');
+                        let err_A = [];
+                        if (!_.isUndefined(err.line)) err_A.push(('\nline:' + err.line + '').bold);
+                        if (!_.isUndefined(err.extract)) err_A.push('\nextract:' + err.extract);
+                        if (!_.isUndefined(err.reason)) err_A.push('\nreason:' + err.reason.yellow.bold);
+                        if (!_.isUndefined(err.message)) err_A.push('\nreason:' + err.message.yellow.bold);
+                        let errstr = '';
+                        for (let i in err_A) {
+                            errstr += err_A[i];
                         }
+                        console.log(((filename).bold + errstr));
+                        notifier.notify({
+                            title: 'Error in LESS build for ' + filename + ': ',
+                            message: _.isUndefined(err.message) ? err.reason : err.message
+                        });
                     } catch (e) {}
-                    console.log(' ');
                 });
-            });
-        },
-          err => {
-            console.log(dest_file + ' x'.red);
-            beep(2);
-            try {
-                let filename = typeof (err.filename) !== undefined ? err.filename.split('\\') : err.file.split('\\');
-                filename = filename.splice((filename.length - 2), 2).join('/');
-                let err_A = [];
-                if ( !_.isUndefined(err.line) ) err_A.push(('\nline:' + err.line+'').bold);
-                if ( !_.isUndefined(err.extract) ) err_A.push('\nextract:' + err.extract);
-                if ( !_.isUndefined(err.reason) ) err_A.push('\nreason:' + err.reason.yellow.bold);
-                if ( !_.isUndefined(err.message) ) err_A.push('\nreason:' + err.message.yellow.bold);
-                let errstr = '';
-                for (let i in err_A) {
-                    errstr += err_A[i];
-                }
-                console.log(((filename).bold + errstr));
-                notifier.notify({
-                    title: 'Error in LESS build for ' + filename + ': ',
-                    message: _.isUndefined(err.message) ? err.reason :err.message
-                });
-            } catch (e) {}
-        });
     };
 
     watchAll() {
+        this.bs = require('browser-sync').get(project.name);
         this.startLess().then(this.watchMain.bind(this));
     }
     watchMain() {
         console.log('Watching LESS files...'.bold);
         let watcher = chokidar.watch(paths.project + '/src/LESS/**/*.*', this.watcher_opts);
-        watcher.on( 'all', this.build.bind(this) );
+        watcher.on('all', this.build.bind(this));
     }
-    
+
     build(e, where) {
-        if ( where ) {
+        if (where) {
             where = where.replace(/\\/g, '/');
             console.log((e.toUpperCase()).bold + ' in file ' + (where).bold);
         }
         console.log('  ---- POSTCSS/LESS build initialized ----   '.bgYellow.black);
 
-        asynch.series([ (end) => {
+        asynch.series([(end) => {
             let f_l = this.compile_files.length;
             let fi = 0;
             this.compile_files.forEach(file => {
@@ -215,27 +217,30 @@ class LessBuilder {
                 });
             });
         },
-       (end) => {
-           this.compile_files.forEach(file => {
-               let dest_file = file.substring(file.lastIndexOf('/') + 1, file.lastIndexOf('.'));
-               if (!file.localeCompare(where)) {
-                   //if its a new file, not in the main glob, read the new file
-                   fs.readFile(file, 'utf8', (err, data) => {
-                       this.cached_files[file] = data;
-                       this.timers[dest_file] = Date.now();
-                       this.dataReady.call(this, file, dest_file, null, this.cached_files[file]);
-                   });
-               } else {
-                   this.timers[dest_file] = Date.now();
-                   this.dataReady.call(this, file, dest_file, null, this.cached_files[file]);
-               }
-           });
+            (end) => {
+                this.compile_files.forEach(file => {
+                    let dest_file = file.substring(file.lastIndexOf('/') + 1, file.lastIndexOf('.'));
+                    if (!file.localeCompare(where)) {
+                        //if its a new file, not in the main glob, read the new file
+                        fs.readFile(file, 'utf8', (err, data) => {
+                            this.cached_files[file] = data;
+                            this.timers[dest_file] = Date.now();
+                            this.dataReady.call(this, file, dest_file, null, this.cached_files[file]);
+                        });
+                    } else {
+                        this.timers[dest_file] = Date.now();
+                        this.dataReady.call(this, file, dest_file, null, this.cached_files[file]);
+                    }
+                });
        }
 
-      ]);   
+      ]);
     }
-    
+
     startLess() {
+        let spinner = new Spinner('Loading LESS compiler and caching files %s'.cyan.bold);
+        spinner.setSpinnerString(18);
+        spinner.start();
         let q = new Promise((resolve, reject) => {
             //--cache files and initilize LESS with plugins
             this.cached_files = [];
@@ -244,7 +249,7 @@ class LessBuilder {
                     glob(paths.project + '/src/LESS/*.less', (er, files) => {
                         let total_files_num = files.length,
                             i = 0;
-                        files.forEach( file => {
+                        files.forEach(file => {
                             this.compilers[file] = require('less');
                             this.compile_files.push(file);
                             fs.readFile(file, 'utf8', (err, data) => {
@@ -252,19 +257,19 @@ class LessBuilder {
                                 this.cached_files[file] = data;
                                 if (i === total_files_num) done();
                             });
-                        } );
+                        });
                     });
                 },
                 loadPlugins: done => {
                     let pl = this.compilers[this.compile_files[0]];
                     let plugin_loader = new pl.PluginLoader(pl);
                     for (let i in this.plugins_list) {
-                        if ( _.isObject(this.plugins_list[i]) ) {
+                        if (_.isObject(this.plugins_list[i])) {
                             //if its already instantiated plugin object, not a string for loading
                             this.plugins.push(this.plugins_list[i]);
                         } else {
                             //load plugin by name
-                            let plugin = plugin_loader.tryLoadPlugin( this.plugins_list[i], '' );
+                            let plugin = plugin_loader.tryLoadPlugin(this.plugins_list[i], '');
                             if (plugin) {
                                 this.plugins.push(plugin);
                             } else {
@@ -276,13 +281,15 @@ class LessBuilder {
                     done();
                 }
 
-            }, ( err, res ) => {
+            }, (err, res) => {
                 this.less_options.plugins = this.plugins;
+                spinner.stop(true);
+                console.log('');
                 resolve();
             });
-            
+
         });
-        
+
         return q;
     }
 }
