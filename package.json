@@ -7,7 +7,7 @@
     "postinstall": "node bin/main/postinstall",
     "test": "test",
     "notify": "node-notifier",
-    "prestart": "",
+    "prestart": "npm i",
     "start": "node bin/main/nodemon",
     "restart": "npm start"
   },
