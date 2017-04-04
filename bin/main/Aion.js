@@ -130,7 +130,7 @@ class Aion {
 					break;
 				case this.possible[4]:
 					builder = new this.FontBuilder(this.project);
-					builder.buildAll();
+					builder.build();
 					break;
 				default:
 					_.forEach(this.possible, this.build.bind(this));
