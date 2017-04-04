@@ -1,3 +1,7 @@
+/* TODO: 
+ - return a promise on all of the builders, run all one after another OR
+   run all of the builds in separate window (fork)
+*/
 require("./base.js")();
 
 class Aion {
@@ -107,7 +111,7 @@ class Aion {
 	}
 
 	build(type) {
-		if (_.indexOf(this.possible, type) >= 0 || _.isUndefined(type)) {
+		if (_.indexOf(this.possible, type) >= 0 || _.isUndefined(type) || type === 'all') {
 			let builder = {};
 			switch (type) {
 				case this.possible[0]:
