@@ -92,17 +92,12 @@ class LessBuilder {
             paths: [],
             color: true,
             strictImports: false,
-            insecure: false,
-            rootpath: '',
             relativeUrls: false,
             ieCompat: true,
             strictMath: true,
             strictUnits: false,
-            globalVars: null,
-            modifyVars: null,
             urlArgs: '',
-            plugins: null,
-            sourceMap: {}
+            sourceMap: {sourceMapFileInline: false}
         };
 
         this.compile_files = [];
@@ -122,7 +117,7 @@ class LessBuilder {
         this.compilers[file].render(data, this.less_options)
             .then(output => {
             this.postcss([this.sprites(this.opts), this.postcss_size, this.mqpacker]).process(output.css, {
-                from: 'LESS/' + dest_file + '.less',
+                from: 'LESS/' + dest_file + '.less', 
                 to: paths.project+'/dist/css/' + dest_file + '.css',
                 map: {
                     inline: false,
@@ -131,6 +126,7 @@ class LessBuilder {
             })
                 .then(output => {
                 //check files hash
+                output.css += '/*# sourceMappingURL='+dest_file+'.css.map */';
                 let current_hash = this.hasha(output.css);
                 if (!_.isUndefined(this.files_hashes[dest_file])) {
                     if (current_hash.localeCompare(this.files_hashes[dest_file]) === 0) {
@@ -143,7 +139,7 @@ class LessBuilder {
                 } else {
                     this.files_hashes[dest_file] = current_hash;
                 }
-                if (output.map) fs.writeFileSync(paths.project + '/dist/css/' + dest_file + '.min.css.map', output.map);
+                if (output.map) fs.writeFileSync(paths.project + '/dist/css/' + dest_file + '.css.map', output.map);
 
                 fs.writeFile(paths.project + '/dist/css/' + dest_file + '.min.css', output.css, err => {
                     if (err) {
