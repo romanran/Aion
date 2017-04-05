@@ -111,18 +111,9 @@ class Aion {
 	}
 
 	eventHandler() {
-		const Interface = require('./Interface.js');
-		const commander = new Interface;
-		commander.start();
-		commander.emitter.on('input', command => {
-			switch (command) {
-				case 's':
-				case 'stop':
-					this.stopWatch();
-					break;
-			}
-		});
+
 	}
+	
 	stopWatch() {
 		if (this.project.bs) {
 			if (this.bs.paused) {
