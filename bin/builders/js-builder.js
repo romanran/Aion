@@ -20,8 +20,9 @@ class JsBuilder {
 	}
 
 	watchAll() {
-		 this.bs = require('browser-sync').get(this.project.name);
-		
+		if(this.project.bs){
+			this.bs = require('browser-sync').get(this.project.name);
+		}
 		let watcher = chokidar.watch(paths.project + '/src/JS/**/*.js', this.watcher_opts);
 		console.log('Watching JS files...'.bold);
 		watcher.on('all', (e, where) => {

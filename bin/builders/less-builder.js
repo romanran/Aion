@@ -187,7 +187,9 @@ class LessBuilder {
     };
 
     watchAll() {
-        this.bs = require('browser-sync').get(this.project.name);
+        if(this.project.bs){
+            this.bs = require('browser-sync').get(this.project.name);
+        }
         this.startLess().then(this.watchMain.bind(this));
     }
     watchMain() {
