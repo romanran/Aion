@@ -122,7 +122,7 @@ class Aion {
 	}
 
 	build(type) {
-		if (_.indexOf(this.possible, type) >= 0 || _.isUndefined(type) || type === 'all') {
+		if (_.indexOf(this.possible, type) >= 0 || _.isEmpty(type) || type === 'all') {
 			let builder = {};
 			switch (type) {
 				case this.possible[0]:
