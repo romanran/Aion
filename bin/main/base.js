@@ -31,6 +31,12 @@ const handleError = function (err) {
 	return 1;
 }
 
+const cleanRequire = function (path){
+	delete require.cache[require.resolve(path)];
+	return require(path);
+}
+
+
 module.exports = function () {
 	this.colors = colors;
 	this.glob = glob;
@@ -47,4 +53,5 @@ module.exports = function () {
 	this.deb = deb;
 	this.handleError = handleError;
 	this.Spinner = Spinner;
+	this.cleanRequire = cleanRequire;
 };

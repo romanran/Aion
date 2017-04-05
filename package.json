@@ -8,7 +8,7 @@
     "test": "test",
     "notify": "node-notifier",
     "prestart": "npm -v",
-    "start": "node bin/main/nodemon",
+    "start": "node bin/operators/main-dev",
     "restart": "npm start",
     "build:all": "node bin/operators/build",
     "build": "node bin/operators/build",

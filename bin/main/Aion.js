@@ -8,10 +8,10 @@ class Aion {
 
 	constructor() {
 		deb('  ______   __                     \r\n \/      \\ |  \\                    \r\n|  $$$$$$\\ \\$$  ______   _______  \r\n| $$__| $$|  \\ \/      \\ |       \\ \r\n| $$    $$| $$|  $$$$$$\\| $$$$$$$\\\r\n| $$$$$$$$| $$| $$  | $$| $$  | $$\r\n| $$  | $$| $$| $$__\/ $$| $$  | $$\r\n| $$  | $$| $$ \\$$    $$| $$  | $$\r\n \\$$   \\$$ \\$$  \\$$$$$$  \\$$   \\$$\r\n                                  \r\n'.red.bold);
-		deb('-- AION task runner initiated --'.green.bold);
 		this.possible = ['js', 'img', 'css', 'svg', 'font'];
 		this.loadConfig();
 		this.loadDeps();
+		deb('-- AION task runner initiated --'.green.bold);
 	}
 
 	static checkConfig() {
@@ -29,20 +29,21 @@ class Aion {
 		if (Aion.checkConfig()) {
 			return false;
 		}
-
-		this.project = require(paths.project + "/src/config.json");
-		this.bs_conf = require(paths.configs + "/bs-config.js");
+		
+		this.project = cleanRequire(paths.project + "/src/config.json");
+		this.bs_conf = cleanRequire(paths.configs + "/bs-config.js");
 	}
 
 	loadDeps() {
-		this.LessBuilder = require(paths.builders + "/less-builder.js");
-		this.SvgBuilder = require(paths.builders + "/svg-builder.js");
-		this.ImgBuilder = require(paths.builders + "/img-builder.js");
-		this.JsBuilder = require(paths.builders + "/js-builder.js");
-		this.FontBuilder = require(paths.builders + "/font-builder.js");
+		this.LessBuilder = cleanRequire(paths.builders + "/less-builder.js");
+		this.SvgBuilder = cleanRequire(paths.builders + "/svg-builder.js");
+		this.ImgBuilder = cleanRequire(paths.builders + "/img-builder.js");
+		this.JsBuilder = cleanRequire(paths.builders + "/js-builder.js");
+		this.FontBuilder = cleanRequire(paths.builders + "/font-builder.js");
 	}
 
 	watch(type) {
+
 		if (_.indexOf(this.possible, type) >= 0 || _.isUndefined(type)) {
 			switch (type) {
 				case this.possible[0]:
@@ -110,10 +111,6 @@ class Aion {
 		});
 	}
 
-	eventHandler() {
-
-	}
-	
 	stopWatch() {
 		if (this.project.bs) {
 			if (this.bs.paused) {
@@ -155,6 +152,25 @@ class Aion {
 			}
 
 		}
+	}
+	
+	emit(event, data){
+		this.emitter.emit(event, data);
+	}
+	
+	watchSelf() {
+		const events = require('events');
+		this.emitter = new events.EventEmitter();
+		this.watcher = chokidar.watch(['**/*.js', 'package.json', paths.project + 'src/config.js'], {
+			cwd: paths.base,
+			ignoreInitial: true
+		});
+		this.watcher.on('all', e => {
+			this.emit('message', {
+				message: 'Change in the Aion, restarting...',
+				event: 'restart'
+			});
+		});
 	}
 }
 module.exports = Aion;

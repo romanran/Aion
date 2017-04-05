@@ -32,7 +32,7 @@ class JsBuilder {
 				glob(['../src/JS/wp-admin/wp-admin.js', '../src/JS/wp-admin/**/*.js'], this.compileAll.bind(this));
 			} else {
 				this.target_name = 'all';
-				glob([paths.project + '/src/JS/main/main.js', paths.project + '/src/JS/main/*.js', '!' + paths.project + '/src/JS/wp-admin/**/*.js', paths.project + '/src/JS/**/*.js'], this.compileAll.bind(this));
+				glob([paths.project + '/src/JS/main/main.js', paths.project + '/src/JS/main/*.js', '!' + paths.project + '/src/JS/wp-admin/**/*.js', paths.project + '/src/JS/**/*.js'], {nosort: true}, this.compileAll.bind(this));
 			}
 		});
 
