@@ -247,7 +247,7 @@ class LessBuilder {
         let q = new Promise((resolve, reject) => {
             //--cache files and initilize LESS with plugins
             this.cached_files = [];
-            asynch.eachSeries({
+            asynch.series({
                 cacheFiles: done => {
                     glob(paths.project + '/src/LESS/*.less', (er, files) => {
                         let total_files_num = files.length,

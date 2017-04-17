@@ -72,13 +72,13 @@ class Aion {
 		return new Promise((res, rej) => {
 			if (this.project.server) {
 				const nodemon = require('nodemon');
-				nodemon({
+				this.nodemon = nodemon({
 					script: this.project.path,
 					stdout: true,
-					watch: [paths.project + '/app/**/*.*', paths.project + '/app/server.js'],
-					exitcrash: 'main.js'
-				}).on('crash', () => {
-					nodemon.emit('restart');
+					watch: [paths.project + '/app/**/*.*', paths.project + '/app/server.js']
+				})
+				this.nodemon.on('crash', () => {
+					this.nodemon.emit('restart');
 				});
 				res();
 			} else if (this.project.bs) {
@@ -111,7 +111,7 @@ class Aion {
 		});
 	}
 
-	stopWatch() {
+	toggleBS() {
 		if (this.project.bs) {
 			if (this.bs.paused) {
 				this.bs.resume();
@@ -119,6 +119,20 @@ class Aion {
 				this.bs.pause();
 			}
 		}
+	}
+	stop() {
+		let q = new Promise((res, rej)=>{
+			if (this.project.bs && _.hasIn(this, 'bs.exit')) {
+				this.Aion.bs.exit();
+				res();
+			}
+			if (this.project.server) {
+				this.nodemon.once('exit', () => {
+					res();
+				}).emit('quit');
+			}
+		});
+		return q;
 	}
 
 	build(type) {
@@ -159,7 +173,8 @@ class Aion {
 	}
 	
 	watchSelf() {
-		const events = require('events');
+		const events = cleanRequire('events');
+		_.unset(this, ['emitter', 'watcher']);
 		this.emitter = new events.EventEmitter();
 		this.watcher = chokidar.watch(['**/*.js', 'package.json', paths.project + 'src/config.js'], {
 			cwd: paths.base,

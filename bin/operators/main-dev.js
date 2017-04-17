@@ -3,12 +3,13 @@ const util = require('util');
 
 class Dev {
 	constructor(){
+		this.i = 0;
 	}
 	
 	start() {
-		delete require.cache[require.resolve(paths.main + '/Aion')];
-		let Aion = require(paths.main + '/Aion');
+		this.i++;
 		_.unset(this, 'Aion');
+		let Aion = cleanRequire(paths.main + '/Aion');
 		this.Aion = new Aion();
 
 		this.Aion.serve().then(this.watch.bind(this)).catch(err => {
@@ -26,17 +27,13 @@ class Dev {
 			let event = obj.event;
 			switch (event) {
 				case 'restart':
-					this.stopBS();
-					this.start();
+					this.Aion.watcher.close();
+					this.Aion.stop().then(e=>{
+						this.start();
+					});
 					break; 
 			}
 		});
-	}
-	
-	stopBS() {
-		if (_.hasIn(this.Aion, 'bs.exit')) {
-			this.Aion.bs.exit();
-		}
 	}
 }
 
