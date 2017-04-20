@@ -2,7 +2,9 @@
 	"name": "{{project_name}}",
 	"bs": "{{browsersync}}",
 	"server": "{{server}}",
-	"path": "localhost/{{project_name}}",
+	"path": "{{working_directory}}",
+	"script": "{{server_script}}",
+  	"proxy": "{{proxy}}",
     "type": "{{type}}",
 	"breakpoints": [
 		{"phone-xs": 375},

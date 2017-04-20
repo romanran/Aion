@@ -30,6 +30,8 @@ class Dev {
 					this.Aion.watcher.close();
 					this.Aion.stop().then(e=>{
 						this.start();
+					}).catch(e => {
+						console.error(e.message);	
 					});
 					break; 
 			}

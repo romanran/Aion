@@ -99,7 +99,7 @@ class SvgBuilder {
 		console.log('  ---- SVG moving initialized ----   '.bgWhite.black);
 
 		glob(paths.project + '/src/SVG/**/*.svg', {
-			ignore: [paths.project + '/src/SVG/symbols/**']
+			ignore: [paths.project + '/src/SVG/symbols/**/*.svg']
 		}, (er, files) => {
 			files.forEach(file => {
 				let dest = path.parse(file);

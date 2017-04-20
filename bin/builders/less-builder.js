@@ -9,9 +9,12 @@ class LessBuilder {
         this.mqpacker = require('css-mqpacker');
         const LessPluginCleanCSS = require('less-plugin-clean-css');
         this.updateRule = require('postcss-sprites/lib/core').updateRule;
-        this.plugins_list = [new LessPluginCleanCSS({
-            advanced: true
-        }), 'less-plugin-autoprefix', 'less-plugin-glob', 'less-plugin-functions'];
+        this.plugins_list = [
+            new LessPluginCleanCSS({advanced: true}),
+            'less-plugin-autoprefix',
+            'less-plugin-glob', 
+            'less-plugin-functions'
+        ];
 
         //set variables and options
         this.timers = {}; //compilation times profilers

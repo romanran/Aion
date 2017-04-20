@@ -29,7 +29,7 @@ class Aion {
 		if (Aion.checkConfig()) {
 			return false;
 		}
-		
+
 		this.project = cleanRequire(paths.project + "/src/config.json");
 		this.bs_conf = cleanRequire(paths.configs + "/bs-config.js");
 	}
@@ -64,50 +64,61 @@ class Aion {
 				default:
 					_.forEach(this.possible, this.watch.bind(this));
 					break;
-			}
+						}
 		}
 	}
 
 	serve() {
 		return new Promise((res, rej) => {
-			if (this.project.server) {
-				const nodemon = require('nodemon');
-				this.nodemon = nodemon({
-					script: this.project.path,
-					stdout: true,
-					watch: [paths.project + '/app/**/*.*', paths.project + '/app/server.js']
-				})
-				this.nodemon.on('crash', () => {
-					this.nodemon.emit('restart');
-				});
-				res();
-			} else if (this.project.bs) {
-				this.bs = require("browser-sync").create(this.project.name);
-				const ip = require('ip');
-				const portscanner = require('portscanner');
+			asynch.series([
+				done => {
+					if (this.project.bs) {
+						this.bs = require("browser-sync").create(this.project.name);
+						const ip = require('ip');
+						const portscanner = require('portscanner');
 
-				let spinner = new Spinner('Starting Browser-sync %s'.cyan.bold);
-				spinner.setSpinnerString(18);
-				spinner.start();
+						let spinner = new Spinner('Starting Browser-sync %s'.cyan.bold);
+						spinner.setSpinnerString(18);
+						spinner.start();
 
-				let this_ip = ip.address();
-				portscanner.findAPortNotInUse(3000, 3100, this_ip, (err, port) => {
-					this.bs_conf.proxy = {
-						target: this.project.path,
-						ws: true
-					};
-					this.bs_conf.host = this_ip;
-					this.bs_conf.port = port;
-					this.bs_process = this.bs.init(this.bs_conf);
-					this.bs_process.emitter.on("init", () => {
-						deb('');
-						spinner.stop(true);
-						res();
-					});
-				});
-			} else {
+						let this_ip = ip.address();
+						portscanner.findAPortNotInUse(3000, 3100, this_ip, (err, port) => {
+							this.bs_conf.proxy = {
+								target: this.project.proxy,
+								ws: true
+							};
+							this.bs_conf.host = this_ip;
+							this.bs_conf.port = port;
+							this.bs_process = this.bs.init(this.bs_conf);
+							this.bs_process.emitter.on("init", () => {
+								deb('');
+								spinner.stop(true);
+								done();
+							});
+						});
+					}else{
+						done();	
+					}
+				},
+				done => {
+					if (this.project.server) {
+						const nodemon = require('nodemon');
+						this.nodemon = nodemon({
+							script: this.project.script,
+							stdout: true,
+							cwd: this.project.path
+						})
+						this.nodemon.on('start', () => {done()});	
+						this.nodemon.on('crash', () => {
+							this.nodemon.emit('restart');
+						});
+					}else{
+						done();	
+					}
+				}
+			], (err, data) => {
 				res();
-			}
+			});
 		});
 	}
 
@@ -121,15 +132,17 @@ class Aion {
 		}
 	}
 	stop() {
-		let q = new Promise((res, rej)=>{
+		let q = new Promise((res, rej) => {
 			if (this.project.bs && _.hasIn(this, 'bs.exit')) {
-				this.Aion.bs.exit();
-				res();
+				this.bs.exit();
 			}
 			if (this.project.server) {
+				this.nodemon.emit('quit');
 				this.nodemon.once('exit', () => {
 					res();
-				}).emit('quit');
+				});
+			} else {
+				res();
 			}
 		});
 		return q;
@@ -163,15 +176,15 @@ class Aion {
 				default:
 					_.forEach(this.possible, this.build.bind(this));
 					break;
-			}
+						}
 
 		}
 	}
-	
-	emit(event, data){
+
+	emit(event, data) {
 		this.emitter.emit(event, data);
 	}
-	
+
 	watchSelf() {
 		const events = cleanRequire('events');
 		_.unset(this, ['emitter', 'watcher']);

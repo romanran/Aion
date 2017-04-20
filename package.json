@@ -27,7 +27,7 @@
   "author": "TDSOFT",
   "license": "BSD-Protection",
   "homepage": "https://bitbucket.org/RomanRanniew/tdsoft_aion#readme",
-  "devDependencies": {
+  "dependencies": {
     "async": "^2.1.4",
     "babel": "^6.5.2",
     "babel-core": "^6.22.1",
