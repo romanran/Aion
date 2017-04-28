@@ -14,7 +14,7 @@ class Dev {
 
 		this.Aion.serve().then(this.watch.bind(this)).catch(err => {
 			handleError(err);
-			this.stopBS();
+			this.stop();
 			setTimeout(this.start.bind(this), 5000);
 		});
 	}

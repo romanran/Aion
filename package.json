@@ -18,7 +18,8 @@
     "build:svg": "node bin/operators/build --build svg",
     "build:img": "node bin/operators/build --build img",
     "build:fonts": "node bin/operators/build --build font",
-    "build:font": "node bin/operators/build --build font"
+    "jshint": "jshint --reporter=node_modules/jshint-stylish",
+    "check": "jshint --reporter=node_modules/jshint-stylish ./bin/. || ECHO"
   },
   "repository": {
     "type": "git",
@@ -62,6 +63,7 @@
     "nodemon": "^1.11.0",
     "parallelshell": "^2.0.0",
     "path": "^0.12.7",
+    "pm2": "^2.4.6",
     "portscanner": "^2.1.1",
     "postcss": "^5.2.6",
     "postcss-size": "^1.0.0",
@@ -74,5 +76,9 @@
     "svgstore": "^2.0.2",
     "uglify-js": "^2.7.5",
     "util": "^0.10.3"
+  },
+  "devDependencies": {
+    "jshint": "^2.9.4",
+    "jshint-stylish": "^2.2.1"
   }
 }

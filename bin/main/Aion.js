@@ -2,12 +2,12 @@
  - return a promise on all of the builders, run all one after another OR
    run all of the builds in separate window (fork)
 */
-require("./base.js")();
+require('./base.js')();
 
 class Aion {
 
 	constructor() {
-		deb('  ______   __                     \r\n \/      \\ |  \\                    \r\n|  $$$$$$\\ \\$$  ______   _______  \r\n| $$__| $$|  \\ \/      \\ |       \\ \r\n| $$    $$| $$|  $$$$$$\\| $$$$$$$\\\r\n| $$$$$$$$| $$| $$  | $$| $$  | $$\r\n| $$  | $$| $$| $$__\/ $$| $$  | $$\r\n| $$  | $$| $$ \\$$    $$| $$  | $$\r\n \\$$   \\$$ \\$$  \\$$$$$$  \\$$   \\$$\r\n                                  \r\n'.red.bold);
+		deb('  ______   __                     \r\n \/      \\ |  \\                    \r\n|  $$$$$$\\ \\$$  ______   _______  \r\n| $$__| $$|  \\ \/      \\ |       \\ \r\n| $$    $$| $$|  $$$$$$\\| $$$$$$$\\\r\n| $$$$$$$$| $$| $$  | $$| $$  | $$\r\n| $$  | $$| $$| $$__\/ $$| $$  | $$\r\n| $$  | $$| $$ \\$$    $$| $$  | $$\r\n \\$$   \\$$ \\$$  \\$$$$$$  \\$$   \\$$\r\n                                  \r\n'.green.bold);
 		this.possible = ['js', 'img', 'css', 'svg', 'font'];
 		this.loadConfig();
 		this.loadDeps();
@@ -30,16 +30,16 @@ class Aion {
 			return false;
 		}
 
-		this.project = cleanRequire(paths.project + "/src/config.json");
-		this.bs_conf = cleanRequire(paths.configs + "/bs-config.js");
+		this.project = cleanRequire(paths.project + '/src/config.json');
+		this.bs_conf = cleanRequire(paths.configs + '/bs-config.js');
 	}
 
 	loadDeps() {
-		this.LessBuilder = cleanRequire(paths.builders + "/less-builder.js");
-		this.SvgBuilder = cleanRequire(paths.builders + "/svg-builder.js");
-		this.ImgBuilder = cleanRequire(paths.builders + "/img-builder.js");
-		this.JsBuilder = cleanRequire(paths.builders + "/js-builder.js");
-		this.FontBuilder = cleanRequire(paths.builders + "/font-builder.js");
+		this.LessBuilder = cleanRequire(paths.builders + '/less-builder.js');
+		this.SvgBuilder = cleanRequire(paths.builders + '/svg-builder.js');
+		this.ImgBuilder = cleanRequire(paths.builders + '/img-builder.js');
+		this.JsBuilder = cleanRequire(paths.builders + '/js-builder.js');
+		this.FontBuilder = cleanRequire(paths.builders + '/font-builder.js');
 	}
 
 	watch(type) {
@@ -64,7 +64,7 @@ class Aion {
 				default:
 					_.forEach(this.possible, this.watch.bind(this));
 					break;
-						}
+			}
 		}
 	}
 
@@ -73,7 +73,7 @@ class Aion {
 			asynch.series([
 				done => {
 					if (this.project.bs) {
-						this.bs = require("browser-sync").create(this.project.name);
+						this.bs = require('browser-sync').create(this.project.name);
 						const ip = require('ip');
 						const portscanner = require('portscanner');
 
@@ -90,14 +90,14 @@ class Aion {
 							this.bs_conf.host = this_ip;
 							this.bs_conf.port = port;
 							this.bs_process = this.bs.init(this.bs_conf);
-							this.bs_process.emitter.on("init", () => {
+							this.bs_process.emitter.on('init', () => {
 								deb('');
 								spinner.stop(true);
 								done();
 							});
 						});
-					}else{
-						done();	
+					} else {
+						done();
 					}
 				},
 				done => {
@@ -107,13 +107,15 @@ class Aion {
 							script: this.project.script,
 							stdout: true,
 							cwd: this.project.path
-						})
-						this.nodemon.on('start', () => {done()});	
+						});
+						this.nodemon.on('start', () => {
+							done();
+						});
 						this.nodemon.on('crash', () => {
 							this.nodemon.emit('restart');
 						});
-					}else{
-						done();	
+					} else {
+						done();
 					}
 				}
 			], (err, data) => {
@@ -176,7 +178,7 @@ class Aion {
 				default:
 					_.forEach(this.possible, this.build.bind(this));
 					break;
-						}
+			}
 
 		}
 	}

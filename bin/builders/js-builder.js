@@ -1,30 +1,26 @@
+const watcher_opts = require(paths.configs + '/watcher');
+const asynch = require('async');
+const babel = require('babel-core');
+const es2015 = require('babel-preset-es2015');
+const browserify = require('browserify');
+const UglifyJS = require('uglify-js');
+const jsmin = require('prettydiff').jspretty;
+
 class JsBuilder {
 
 	constructor(project) {
 		this.project = project;
-		this.babel = require('babel-core');
-		this.es2015 = require('babel-preset-es2015');
-		this.browserify = require('browserify');
-		this.UglifyJS = require('uglify-js');
-		this.async = require('async');
 		//		this.prettydiff = require('prettydiff');
-		this.jsmin = require(paths.base + '/node_modules/prettydiff/lib/jspretty.js');
-
-		this.watcher_opts = {
-			ignoreInitial: true,
-			awaitWriteFinish: {
-				stabilityThreshold: 100, //(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
-				pollInterval: 10 // (default: 100). File size polling interval.
-			}
-		};
 	}
 
 	watchAll() {
 		if(this.project.bs){
 			this.bs = require('browser-sync').get(this.project.name);
 		}
-		let watcher = chokidar.watch(paths.project + '/src/JS/**/*.js', this.watcher_opts);
-		console.log('Watching JS files...'.bold);
+		let watcher = chokidar.watch(paths.project + '/src/JS/**/*.js', watcher_opts);
+		watcher.on('ready', e => {
+			console.log('Watching JS files...'.bold);
+        });
 		watcher.on('all', (e, where) => {
 			console.log(e.yellow.bold + ' in ' + path.basename(where).bold + ', starting build...');
 			if (where.indexOf('wp-admin') >= 0) {
@@ -66,7 +62,7 @@ class JsBuilder {
 		this.file_num = 0;
 		this.err_count = 0;
 		this.promises = promise;
-		this.async.eachOfSeries(files, this.compile.bind(this, files_l)); //compile each file
+		asynch.eachOfSeries(files, this.compile.bind(this, files_l)); //compile each file
 
 		this.data = '';
 		this.data_src = '';
@@ -88,37 +84,33 @@ class JsBuilder {
 				//if the file is last one, resolve promise which then saves data to output location
 			}
 			console.log('File ' + _.toString(this.file_num).bold + ' ' + path.basename(file).bold + ' ✔'.green);
-		}
+		};
 		//read file then pass it through babel
-		this.async.parallel([(end) => {
+		asynch.parallel([(end) => {
 			fs.readFile(file, 'utf8', (err, data) => {
 				this.data_src += data;
 				end();
 			});
 		}, (end) => {
-			this.babel.transformFile(file, {
-				presets: [this.es2015],
+			babel.transformFile(file, {
+				presets: [es2015],
 				babelrc: false
 			}, (err, result) => {
 				if (err) {
 					beep(2);
-//					this.err_count++;
-					if (err.hasOwnProperty('loc')) {
+					if (_.hasIn(err, 'loc')) {
 						//show build error
                         let err_type = 'unknown';
-                        if(err.hasOwnProperty('stack')){
+                        if(_.hasIn(err, 'stack')) {
                             err_type = err.stack.substr(0, err.stack.indexOf(': '));
                         }
-
 						console.log((err_type).red + ' in file ' + (file).bold);
 						console.log('line: ' + (err.loc.line + '').bold, 'pos: ' + (err.loc.column + '').bold);
 						console.log(err.codeFrame);
-
 						notifier.notify({
 							title: err_type + ' in js build for ' + file + ': ',
 							message: 'LINE: ' + err.loc.line
 						});
-
 					} else {
 						console.log(err);
 					}
@@ -135,21 +127,21 @@ class JsBuilder {
 	}
 
 	saveData() {
-		let data_min = this.UglifyJS.minify(_.toString(this.data), {
+		const data_min = UglifyJS.minify(_.toString(this.data), {
 			fromString: true
 		});
 
-//		let data_src_min = this.jsmin.api({
+//		let data_src_min = jsmin.api({
 //			source: this.data_src,
 //			lang: 'javascript',
 //			mode: 'minify'
 //		});
 
-		let showError = function (e) {
+		const showError = function (e) {
 			console.log((e).red);
-		}
+		};
 
-		let handleAfter = function (end, e) {
+		const handleAfter = function (end, e) {
 			if (e !== null) {
 				showError(e);
 			} else if (end) {
@@ -163,7 +155,10 @@ class JsBuilder {
 	}
 
 	watchLibs() {
-		let libs_watcher = chokidar.watch(paths.project + '/src/JSLIBS/*.js', this.watcher_opts);
+		let libs_watcher = chokidar.watch(paths.project + '/src/JSLIBS/*.js', watcher_opts);
+		libs_watcher.on('ready', e => {
+            console.log('Watching JSLIBS files...'.bold);
+        });
 		libs_watcher.on('all', this.buildLibs.bind(this));
 	}
 
@@ -171,7 +166,7 @@ class JsBuilder {
 		console.time('js libs build time');
 		console.log('Preparing files...'.bold);
 		this.libs_data = '';
-		let b = this.browserify('', {
+		let b = browserify('', {
 			standalone: 'Bundle'
 		});
 
@@ -208,7 +203,7 @@ class JsBuilder {
 		});
 
 		console.log('Minifying compiled libraries...'.bold);
-		let data_min = this.UglifyJS.minify(_.toString(this.libs_data), {
+		let data_min = UglifyJS.minify(_.toString(this.libs_data), {
 			fromString: true
 		});
 		
