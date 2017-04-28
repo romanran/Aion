@@ -11,6 +11,7 @@ class SvgBuilder {
 		this.opts = {
 			inline: true,
 		};
+		this.watchers = [];
 
 		let svgo_conf = {
 			plugins: [
@@ -54,6 +55,10 @@ class SvgBuilder {
 
 		watcher.on('ready', e => {
 			console.log('Watching SVG files...'.bold);
+			this.watchers.push(watcher);
+		});
+		symbols_watcher.on('ready', e => {
+			this.watchers.push(symbols_watcher);
 		});
 
 		symbols_watcher.on('change add', this.buildSymbols.bind(this));
@@ -99,4 +104,5 @@ class SvgBuilder {
 		});
 	}
 }
+
 module.exports = SvgBuilder;

@@ -2,6 +2,7 @@
  - return a promise on all of the builders, run all one after another OR
    run all of the builds in separate window (fork)
 */
+
 require('./base.js')();
 
 class Aion {
@@ -9,6 +10,9 @@ class Aion {
 	constructor() {
 		deb('  ______   __                     \r\n \/      \\ |  \\                    \r\n|  $$$$$$\\ \\$$  ______   _______  \r\n| $$__| $$|  \\ \/      \\ |       \\ \r\n| $$    $$| $$|  $$$$$$\\| $$$$$$$\\\r\n| $$$$$$$$| $$| $$  | $$| $$  | $$\r\n| $$  | $$| $$| $$__\/ $$| $$  | $$\r\n| $$  | $$| $$ \\$$    $$| $$  | $$\r\n \\$$   \\$$ \\$$  \\$$$$$$  \\$$   \\$$\r\n                                  \r\n'.green.bold);
 		this.possible = ['js', 'img', 'css', 'svg', 'font'];
+		this.builders = [];
+		this.Builders = {};
+
 		this.loadConfig();
 		this.loadDeps();
 		deb('-- AION task runner initiated --'.green.bold);
@@ -29,42 +33,23 @@ class Aion {
 		if (Aion.checkConfig()) {
 			return false;
 		}
-
 		this.project = cleanRequire(paths.project + '/src/config.json');
 		this.bs_conf = cleanRequire(paths.configs + '/bs-config.js');
 	}
 
 	loadDeps() {
-		this.LessBuilder = cleanRequire(paths.builders + '/less-builder.js');
-		this.SvgBuilder = cleanRequire(paths.builders + '/svg-builder.js');
-		this.ImgBuilder = cleanRequire(paths.builders + '/img-builder.js');
-		this.JsBuilder = cleanRequire(paths.builders + '/js-builder.js');
-		this.FontBuilder = cleanRequire(paths.builders + '/font-builder.js');
+		_.forEach(this.possible, type => {
+			this.Builders[type] = cleanRequire(`${paths.builders}/${type}-builder.js`);
+		});
 	}
 
 	watch(type) {
-
-		if (_.indexOf(this.possible, type) >= 0 || _.isUndefined(type)) {
-			switch (type) {
-				case this.possible[0]:
-					new this.JsBuilder(this.project).watchAll();
-					break;
-				case this.possible[1]:
-					new this.ImgBuilder(this.project).watchAll();
-					break;
-				case this.possible[2]:
-					new this.LessBuilder(this.project).watchAll();
-					break;
-				case this.possible[3]:
-					new this.SvgBuilder(this.project).watchAll();
-					break;
-				case this.possible[4]:
-					new this.FontBuilder(this.project).watchAll();
-					break;
-				default:
-					_.forEach(this.possible, this.watch.bind(this));
-					break;
-			}
+		if (_.indexOf(this.possible, type) >= 0) {
+			let builder = new this.Builders[type](this.project);
+			builder.watchAll();
+			this.builders.push(builder);
+		} else if (_.isUndefined(type)) {
+			_.forEach(this.possible, this.watch.bind(this));
 		}
 	}
 
@@ -133,7 +118,18 @@ class Aion {
 			}
 		}
 	}
+
+	stopWatch() {
+		_.forEach(this.watchers, watcher => {
+			watcher.close();
+		});
+	}
+
 	stop() {
+		_.forEach(this.builders, builder => {
+			this.stopWatch.call(builder);
+		});
+		this.loadDeps();
 		let q = new Promise((res, rej) => {
 			if (this.project.bs && _.hasIn(this, 'bs.exit')) {
 				this.bs.exit();
@@ -151,35 +147,27 @@ class Aion {
 	}
 
 	build(type) {
-		if (_.indexOf(this.possible, type) >= 0 || _.isEmpty(type) || type === 'all') {
-			let builder = {};
+		if (_.indexOf(this.possible, type) >= 0) {
+			let builder = new this.Builders[type](this.project);
 			switch (type) {
-				case this.possible[0]:
-					//					new this.JsBuilder(this.project).build();
-					builder = new this.JsBuilder(this.project);
+				case this.possible[0]: //js
 					builder.buildAll();
 					break;
-				case this.possible[1]:
-					builder = new this.ImgBuilder(this.project);
+				case this.possible[1]: //img
 					builder.build();
 					break;
-				case this.possible[2]:
-					builder = new this.LessBuilder(this.project);
+				case this.possible[2]: //css
 					builder.startLess().then(builder.build.bind(builder));
 					break;
-				case this.possible[3]:
-					builder = new this.SvgBuilder(this.project);
+				case this.possible[3]: //svg
 					builder.buildAll();
 					break;
-				case this.possible[4]:
-					builder = new this.FontBuilder(this.project);
+				case this.possible[4]: //font
 					builder.build();
 					break;
-				default:
-					_.forEach(this.possible, this.build.bind(this));
-					break;
 			}
-
+		} else if (_.isEmpty(type) || type === 'all') {
+			_.forEach(this.possible, this.build.bind(this));
 		}
 	}
 

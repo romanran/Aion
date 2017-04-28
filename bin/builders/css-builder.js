@@ -106,10 +106,11 @@ class LessBuilder {
         let watcher = chokidar.watch(paths.project + '/src/LESS/**/*.*', watcher_opts);
         watcher.on('ready', e => {
             console.log('Watching LESS files...'.bold);
+            this.watchers = [watcher];
         });
         watcher.on('all', this.build.bind(this));
     }
-
+    
     build(e, where) {
         if (where) {
             where = path.parse(where.replace(/\\/g, '/')).name;

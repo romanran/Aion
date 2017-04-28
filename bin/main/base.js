@@ -37,7 +37,6 @@ const cleanRequire = function (path){
 	return require(path);
 };
 
-
 module.exports = function () {
 	this.colors = colors;
 	this.glob = glob;

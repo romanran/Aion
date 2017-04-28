@@ -14,6 +14,7 @@ class FontBuilder {
 		const watcher = chokidar.watch(paths.project + '/src/FONTS/**/*.*', watcher_opts);
 		watcher.on('ready', () => {
 			console.log('Watching FONT files...'.bold);
+			this.watchers = [watcher];
 		});
 		watcher.on('all', this.move.bind(this));
 
@@ -40,4 +41,5 @@ class FontBuilder {
 		}
 	}
 }
+
 module.exports = FontBuilder;

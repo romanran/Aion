@@ -12,6 +12,7 @@ class ImgBuilder{
 		let watcher = chokidar.watch( paths.project + '/src/IMG/*.{jpg,jpeg,png}', watcher_opts);
 		watcher.on('ready', e => {
             console.log('Watching IMAGE files...'.bold);
+		    this.watchers = [watcher];
         });
 		watcher.on('all', this.build.bind(this));
 	}

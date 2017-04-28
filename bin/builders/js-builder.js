@@ -4,13 +4,12 @@ const babel = require('babel-core');
 const es2015 = require('babel-preset-es2015');
 const browserify = require('browserify');
 const UglifyJS = require('uglify-js');
-const jsmin = require('prettydiff').jspretty;
 
 class JsBuilder {
 
 	constructor(project) {
 		this.project = project;
-		//		this.prettydiff = require('prettydiff');
+		this.watchers = [];
 	}
 
 	watchAll() {
@@ -19,6 +18,7 @@ class JsBuilder {
 		}
 		let watcher = chokidar.watch(paths.project + '/src/JS/**/*.js', watcher_opts);
 		watcher.on('ready', e => {
+			this.watchers.push(watcher);
 			console.log('Watching JS files...'.bold);
         });
 		watcher.on('all', (e, where) => {
@@ -131,12 +131,6 @@ class JsBuilder {
 			fromString: true
 		});
 
-//		let data_src_min = jsmin.api({
-//			source: this.data_src,
-//			lang: 'javascript',
-//			mode: 'minify'
-//		});
-
 		const showError = function (e) {
 			console.log((e).red);
 		};
@@ -157,6 +151,7 @@ class JsBuilder {
 	watchLibs() {
 		let libs_watcher = chokidar.watch(paths.project + '/src/JSLIBS/*.js', watcher_opts);
 		libs_watcher.on('ready', e => {
+			this.watchers.push(libs_watcher);
             console.log('Watching JSLIBS files...'.bold);
         });
 		libs_watcher.on('all', this.buildLibs.bind(this));

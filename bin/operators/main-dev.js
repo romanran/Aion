@@ -8,6 +8,7 @@ class Dev {
 	
 	start() {
 		this.i++;
+
 		_.unset(this, 'Aion');
 		let Aion = cleanRequire(paths.main + '/Aion');
 		this.Aion = new Aion();
