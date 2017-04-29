@@ -31,6 +31,7 @@ const handleError = function (err) {
 	console.log(err.bold.red);
 	return 1;
 };
+
 const promise = function(){
 	let resolve, reject;
 	let q = new Promise((res, rej) => {
@@ -38,7 +39,7 @@ const promise = function(){
 		reject = rej;
 	});
 	return {q: q, resolve: resolve, reject: reject};
-}
+};
 
 const cleanRequire = function (path){
 	delete require.cache[require.resolve(path)];

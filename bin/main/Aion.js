@@ -148,7 +148,7 @@ class Aion {
 		_.forEach(this.builders, builder => {
 			this.stopWatch.call(builder);
 		});
-		this.loadDeps();
+		
 		let q = new Promise((res, rej) => {
 			if (this.project.bs && _.hasIn(this, 'bs.exit')) {
 				this.bs.exit();
@@ -207,6 +207,26 @@ class Aion {
 				message: 'Change in the Aion, restarting...',
 				event: 'restart'
 			});
+		});
+		
+		const stdin = process.stdin;
+		stdin.setRawMode( true );
+		stdin.resume();
+		stdin.setEncoding( 'utf8' );
+		stdin.on('data', (key) => {
+			if (key === '\u0003') process.exit();
+			if (key === 's'){
+				this.emit('message', {
+					message: 'Stopping the Aion...',
+					event: 'stop'
+				});	
+			}
+			if (key === 'r'){
+				this.emit('message', {
+					message: 'Resuming the Aion...',
+					event: 'resume'
+				});	
+			}
 		});
 	}
 }

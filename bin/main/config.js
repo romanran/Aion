@@ -114,11 +114,11 @@ module.exports = function () {
 				],
 				filter: choices => {
 					return new Promise((res, rej) => {
-						function ob(n) {
-						  return {[n]: true};
+						function ob(n) {
+							return {[n]: true};
 						}
-
-						choices = _.flatMap(choices, ob);
+						
+						choices = _.flatMap(choices, ob);
 						res(choices);
 					});
 				}
