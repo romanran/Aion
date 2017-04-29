@@ -9,7 +9,7 @@ class Aion {
 
 	constructor() {
 		deb('  ______   __                     \r\n \/      \\ |  \\                    \r\n|  $$$$$$\\ \\$$  ______   _______  \r\n| $$__| $$|  \\ \/      \\ |       \\ \r\n| $$    $$| $$|  $$$$$$\\| $$$$$$$\\\r\n| $$$$$$$$| $$| $$  | $$| $$  | $$\r\n| $$  | $$| $$| $$__\/ $$| $$  | $$\r\n| $$  | $$| $$ \\$$    $$| $$  | $$\r\n \\$$   \\$$ \\$$  \\$$$$$$  \\$$   \\$$\r\n                                  \r\n'.green.bold);
-		this.possible = ['js', 'img', 'css', 'svg', 'font'];
+		this.possible = ['css', 'js', 'img', 'svg', 'font'];
 		this.builders = [];
 		this.Builders = {};
 
