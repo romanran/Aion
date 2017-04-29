@@ -1,13 +1,8 @@
+const watcher_opts = require(paths.configs + '/watcher');
+
 class FontBuilder {
 
 	constructor() {
-		this.watcher_opts = {
-			ignoreInitial: true,
-			awaitWriteFinish: {
-				stabilityThreshold: 50, //(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
-				pollInterval: 20 // (default: 100). File size polling interval.
-			}
-		};
 
 	}
 
@@ -16,11 +11,12 @@ class FontBuilder {
 	}
 
 	watchAll() {
-
-		console.log("Watching FONT files...".bold);
-
-		this.watcher = chokidar.watch(paths.project + '/src/FONTS/**/*.*', this.watcher_opts);
-		this.watcher.on('all', this.move.bind(this));
+		const watcher = chokidar.watch(paths.project + '/src/FONTS/**/*.*', watcher_opts);
+		watcher.on('ready', () => {
+			console.log('Watching FONT files...'.bold);
+			this.watchers = [watcher];
+		});
+		watcher.on('all', this.move.bind(this));
 
 	}
 
@@ -45,4 +41,5 @@ class FontBuilder {
 		}
 	}
 }
+
 module.exports = FontBuilder;

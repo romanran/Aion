@@ -1,4 +1,4 @@
-require("../main/base.js")();
+require('../main/base.js')();
 const nodeFlag = require('node-flag');
 const Aion = require(paths.main+'/Aion');
 
