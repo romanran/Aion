@@ -6,6 +6,13 @@
 	"script": "{{server_script}}",
   	"proxy": "{{proxy}}",
     "type": "{{type}}",
+	"builders":{
+		"css": true,
+		"js": true,
+		"font": true,
+		"svg": true,
+		"img": true
+	},
 	"breakpoints": [
 		{"phone-xs": 375},
 		{"phone-s": 420},

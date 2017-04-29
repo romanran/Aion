@@ -31,6 +31,14 @@ const handleError = function (err) {
 	console.log(err.bold.red);
 	return 1;
 };
+const promise = function(){
+	let resolve, reject;
+	let q = new Promise((res, rej) => {
+		resolve = res;
+		reject = rej;
+	});
+	return {q: q, resolve: resolve, reject: reject};
+}
 
 const cleanRequire = function (path){
 	delete require.cache[require.resolve(path)];
@@ -51,6 +59,7 @@ module.exports = function () {
 	this._ = lodash;
 	this.paths = paths;
 	this.deb = deb;
+	this.promise = promise;
 	this.handleError = handleError;
 	this.Spinner = Spinner;
 	this.cleanRequire = cleanRequire;
