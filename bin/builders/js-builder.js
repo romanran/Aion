@@ -142,7 +142,8 @@ class JsBuilder {
 				console.log('js build ✔'.green);
 				console.timeEnd('build time');
 			}
-		}
+		};
+		
 		fs.writeFile(paths.project + '/dist/js/' + this.target_name + '.js', this.data, 'utf8', handleAfter.bind(null, true));
 		fs.writeFile(paths.project + '/dist/js/' + this.target_name + '.min.js', data_min.code, 'utf8', handleAfter.bind(null, false));
 		//		fs.writeFile('../dist/js/all_es6.min.js', data_src_min, 'utf8', handleAfter.bind(null, false));

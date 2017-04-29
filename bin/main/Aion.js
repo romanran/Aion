@@ -13,49 +13,35 @@ class Aion {
 		this.builders = [];
 		this.Builders = {};
 
-		this.loadConfig();
-		this.loadDeps();
-		deb('-- AION task runner initiated --'.green.bold);
 	}
 
 	static checkConfig() {
-		return fs.stat(paths.project + '/src/config.json', (err, stat) => {
-			if (err) {
-				if (err.code == 'ENOENT') {
-					deb('No config file!'.red.bold);
-					return 1;
+		return new Promise((resolve, reject) => {
+			fs.stat(paths.project + '/src/config.json', (err, stat) => {
+				if (err) {
+					if (err.code == 'ENOENT') {
+						deb('No config file!'.red.bold);
+						const config = require('./config');
+						return config().then(resolve);
+					}
+					return reject(err);
 				}
-			}
+				return resolve();
+			});
 		});
-	}
-
-	loadConfig() {
-		if (Aion.checkConfig()) {
-			return false;
-		}
-		this.project = cleanRequire(paths.project + '/src/config.json');
-		this.bs_conf = cleanRequire(paths.configs + '/bs-config.js');
-	}
-
-	loadDeps() {
-		_.forEach(this.possible, type => {
-			this.Builders[type] = cleanRequire(`${paths.builders}/${type}-builder.js`);
-		});
-	}
-
-	watch(type) {
-		if (_.indexOf(this.possible, type) >= 0) {
-			let builder = new this.Builders[type](this.project);
-			builder.watchAll();
-			this.builders.push(builder);
-		} else if (_.isUndefined(type)) {
-			_.forEach(this.possible, this.watch.bind(this));
-		}
 	}
 
 	serve() {
 		return new Promise((res, rej) => {
 			asynch.series([
+				done => {
+					this.loadConfig().then(e=>{
+						this.loadDeps();
+						return done(null);
+					}).catch(err => {
+						return done(err);	
+					});	
+				},
 				done => {
 					if (this.project.bs) {
 						this.bs = require('browser-sync').create(this.project.name);
@@ -104,9 +90,42 @@ class Aion {
 					}
 				}
 			], (err, data) => {
+				if(err){
+					return handleError(err);
+			    }
+				deb('-- AION task runner initiated --'.green.bold);
 				res();
 			});
 		});
+	}
+	
+	
+	loadConfig() {
+		return new Promise((resolve, reject) => {
+			Aion.checkConfig().then(() =>{
+				this.project = cleanRequire(paths.project + '/src/config.json');
+				this.bs_conf = cleanRequire(paths.configs + '/bs-config.js');
+				return resolve();
+			}).catch(err => {
+				return reject(err);
+			});
+		});
+	}
+
+	loadDeps() {
+		_.forEach(this.possible, type => {
+			this.Builders[type] = cleanRequire(`${paths.builders}/${type}-builder.js`);
+		});
+	}
+
+	watch(type) {
+		if (_.indexOf(this.possible, type) >= 0) {
+			let builder = new this.Builders[type](this.project);
+			builder.watchAll();
+			this.builders.push(builder);
+		} else if (_.isUndefined(type)) {
+			_.forEach(this.possible, this.watch.bind(this));
+		}
 	}
 
 	toggleBS() {
