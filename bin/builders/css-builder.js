@@ -40,13 +40,11 @@ class LessBuilder {
     }
 
     startLess() {
-        let spinner = new Spinner('Loading LESS compiler and caching files %s'.cyan.bold);
-        spinner.setSpinnerString(18);
-        spinner.start();
+        console.log('Loading LESS compiler and caching files'.cyan);
         let resolve, reject;
         let q = new Promise((res, rej) => {
             resolve = res;
-            rej = rej;
+            reject = rej;
         });
         // --cache files and initilize LESS with plugins
         this.cached_files = [];
@@ -95,7 +93,6 @@ class LessBuilder {
                 return reject(err);
             }
             less_options.plugins = this.plugins;
-            spinner.stop(true);
             return resolve();
         });
 
@@ -103,7 +100,8 @@ class LessBuilder {
     }
 
     watchMain() {
-        let watcher = chokidar.watch(paths.project + '/src/LESS/**/*.*', watcher_opts);
+        console.log('Starting LESS watcher...'.cyan);
+        let watcher = chokidar.watch(paths.project + '/src/LESS/**/*.{less,css}', watcher_opts);
         watcher.on('ready', e => {
             console.log('Watching LESS files...'.bold);
             this.watchers = [watcher];

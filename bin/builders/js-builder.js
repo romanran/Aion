@@ -4,7 +4,8 @@ const babel = require('babel-core');
 const es2015 = require('babel-preset-es2015');
 const browserify = require('browserify');
 const UglifyJS = require('uglify-js'),
-	  babelify = require("babelify");
+	  babelify = require('babelify');
+const inq = require('inquirer');
 
 class JsBuilder {
 
@@ -12,12 +13,12 @@ class JsBuilder {
 		this.project = project;
 		this.watchers = [];
 	}
-
-	watchAll() {
+	
+	watchMain(){
 		if (this.project.bs) {
 			this.bs = require('browser-sync').get(this.project.name);
 		}
-
+		console.log('Starting JS watcher...'.cyan);
 		let watcher = chokidar.watch(paths.project + '/src/JS/**/*.js', watcher_opts);
 		watcher.on('ready', e => {
 			this.watchers.push(watcher);
@@ -27,28 +28,49 @@ class JsBuilder {
 		watcher.on('all', (e, where) => {
 			console.log(e.yellow.bold + ' in ' + path.basename(where).bold + ', starting build...');
 			if (where.indexOf('wp-admin') >= 0) {
-				this.compile(paths.project + '/src/JS/wp-admin/wp-admin.js');
+				this.handleCompile(paths.project + '/src/JS/wp-admin/wp-admin.js');
 			} else {
-				this.compile(paths.project + '/src/JS/main/main.js');
+				this.handleCompile(paths.project + '/src/JS/main/main.js');
 			}
+			watcher.close();
 		});
-
+	}
+	
+	handleCompile(file){
+		console.log('  ---- JS build initialized ----  '.bgCyan.black);
+		this.compile(file)
+			.then(this.saveData.bind(this))
+			.catch(err=>{
+				this.watchMain();
+				handleError(err);
+			});
+	}
+	
+	watchAll() {
+		console.log('Caching project JS files...');
+		this.compile(paths.project + '/src/JS/main/main.js')
+			.then(() => {
+				this.watchMain();
+			})
+			.catch(err=>{
+				handleError(err);
+				this.watchMain();
+			});
 		this.watchLibs();
 	}
 
 	buildAll() {
-		this.compile(paths.project + '/src/JS/main/main.js');
-		this.compile(paths.project + '/src/JS/wp-admin/wp-admin.js');
+		this.handleCompile(paths.project + '/src/JS/main/main.js');
 		this.buildLibs();
 	}
 
 	compile(file) {
+		const q = promise();
 		console.time('build time');
-		console.log('Preparing files...'.bold);
 		let data = '';
 		let filename = path.parse(file).name;
 		let bify = browserify('', {
-			//			standalone: 'Bundle',
+			standalone: false,
 			detectGlobals: false,
 		});
 
@@ -72,8 +94,9 @@ class JsBuilder {
 						title: err_type + ' in js build for ' + file + ': ',
 						message: 'LINE: ' + err.loc.line
 					});
+					q.reject(err);
 				} else {
-					handleError(err);
+					q.reject(err);
 				}
 			}
 		
@@ -91,13 +114,14 @@ class JsBuilder {
 		});
 
 		bundler.on('end', () =>{
-			this.saveData(data, filename);
+			q.resolve({data: data, filename: filename});
 		});
-
+		return q.q;
 	}
 
-	saveData(result, name) {
-		let data = result;
+	saveData(result) {
+		const name = result.filename;
+		let data = result.data;
 		const data_min = UglifyJS.minify(_.toString(data), {
 			fromString: true
 		});
@@ -113,7 +137,7 @@ class JsBuilder {
 
 		fs.writeFile(paths.project + '/dist/js/' + name + '.js', data, 'utf8', handleAfter.bind(null, true));
 		fs.writeFile(paths.project + '/dist/js/' + name + '.min.js', data_min.code, 'utf8', handleAfter.bind(null, false));
-		//		fs.writeFile('../dist/js/all_es6.min.js', data_src_min, 'utf8', handleAfter.bind(null, false));
+		this.watchMain();
 	}
 
 	watchLibs() {
@@ -138,10 +162,9 @@ class JsBuilder {
 
 	buildLibs(e, where) {
 		console.time('js libs build time');
-		console.log('Preparing files...'.bold);
 		this.libs_data = '';
 		let bify = browserify('', {
-			standalone: 'Bundle',
+			standalone: false,
 			noParse: false,
 			detectGlobals: false
 		});
