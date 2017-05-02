@@ -1,9 +1,9 @@
 const svgstore = require('svgstore');
 const svgmin = require('svgo');
-const symbol_watcher_opts = require(paths.configs + '/watcher');
-const watcher_opts = require(paths.configs + '/watcher');
+let symbol_watcher_opts = cleanRequire(paths.configs + '/watcher');
+let watcher_opts = cleanRequire(paths.configs + '/watcher');
 
-watcher_opts.ignored = paths.project + '/src/SVG/symbols/*.*';
+watcher_opts.ignored = paths.project + '/src/SVG/SYMBOLS/*.*';
 
 class SvgBuilder {
 
@@ -27,7 +27,7 @@ class SvgBuilder {
 				{
 					removeRasterImages: false
 				}
-		]
+			]
 		};
 
 		this.svgo = new svgmin(svgo_conf);
@@ -50,9 +50,8 @@ class SvgBuilder {
 	}
 
 	watchAll() {
-		const watcher = chokidar.watch(paths.project + '/src/SVG/**/*.svg', this.watcher_opts);
-		const symbols_watcher = chokidar.watch(paths.project + '/src/SVG/symbols/*.svg', this.symbol_watcher_opts);
-
+		const watcher = chokidar.watch(paths.project + '/src/SVG/**/*.svg', watcher_opts);
+		const symbols_watcher = chokidar.watch(paths.project + '/src/SVG/SYMBOLS/*.svg', symbol_watcher_opts);
 		watcher.on('ready', e => {
 			console.log('Watching SVG files...'.bold);
 			this.watchers.push(watcher);
@@ -60,9 +59,8 @@ class SvgBuilder {
 		symbols_watcher.on('ready', e => {
 			this.watchers.push(symbols_watcher);
 		});
-
-		symbols_watcher.on('change add', this.buildSymbols.bind(this));
-		watcher.on('change add', this.move.bind(this));
+		symbols_watcher.on('all', this.buildSymbols.bind(this));
+		watcher.on('all', this.move.bind(this));
 	}
 
 	buildSymbols(e, where) {

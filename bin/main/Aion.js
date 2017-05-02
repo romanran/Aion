@@ -21,7 +21,7 @@ class Aion {
 				if (err) {
 					if (err.code == 'ENOENT') {
 						deb('No config file!'.red.bold);
-						const config = require('./config');
+						const config = require('./config-prompt');
 						return config().then(resolve);
 					}
 					return reject(err);
@@ -213,15 +213,22 @@ class Aion {
 		stdin.setRawMode( true );
 		stdin.resume();
 		stdin.setEncoding( 'utf8' );
+		let ready = true;
+		console.log('  -- Press the "s" key to stop the Aion --  '.bold.yellow);
 		stdin.on('data', (key) => {
 			if (key === '\u0003') process.exit();
-			if (key === 's'){
+			if (key === 's' && ready){
 				this.emit('message', {
 					message: 'Stopping the Aion...',
 					event: 'stop'
 				});	
+				ready = false;
+				const menu = require('./stopped-menu');
+				return menu().then(data => {
+					ready = true;	
+				});
 			}
-			if (key === 'r'){
+			if (key === 'r' && ready){
 				this.emit('message', {
 					message: 'Resuming the Aion...',
 					event: 'resume'

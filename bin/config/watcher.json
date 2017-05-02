@@ -1,5 +1,4 @@
 {
-    "persistent": true,
     "ignoreInitial": true,
     "awaitWriteFinish": {
         "stabilityThreshold": 100,
