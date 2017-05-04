@@ -25,6 +25,9 @@ class LessBuilder {
         this.timers = {}; //compilation times profilers
         this.compile_files = [];
         this.plugins = [];
+        this.q = new Promise((res,rej) => {
+            this.loaded = res;
+        });
     }
 
     watchAll() {
@@ -61,6 +64,7 @@ class LessBuilder {
         watcher.on('ready', e => {
             console.log('Watching LESS files...'.bold);
             this.watchers = [watcher];
+            this.loaded();
         });
         watcher.on('all', this.build.bind(this));
     }

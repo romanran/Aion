@@ -18,15 +18,17 @@ class Dev {
 	start(){
 		this.Aion.serve().then(this.watch.bind(this)).catch(err => {
 			handleError(err);
-			this.stop();
-			setTimeout(this.init.bind(this), 5000);
+			this.Aion.stop().then(() =>{
+				setTimeout(this.init.bind(this), 5000);
+			});
 		});	
 	}
 
 	watch() {
-		this.Aion.watchSelf();
 		this.Aion.watch();
+		this.Aion.watchSelf();
 		this.Aion.emitter.on('message', obj => {
+			this.Aion.interface.pause();
 			console.info('\n' + obj.message.bold.yellow);
 			let event = obj.event;
 			switch (event) {
@@ -39,7 +41,26 @@ class Dev {
 					});
 					break;
 				case 'stop':
-					this.Aion.stop();
+					this.Aion.stop().then(e =>{
+						const menu = require(paths.main + '/stopped-menu').bind(this.Aion);
+						return menu().then(answers => {
+//							deb(JSON.stringify(answers, null, '  '));
+							switch(answers.choice){
+								case 'resume':
+									this.start();
+									break;
+								case 'quit':
+									this.Aion.interface.close();
+									this.Aion.stop().then(function(){
+										process.exit();
+									});
+									break;
+								case 'build':
+									_.forEach(answers.builders, this.Aion.build.bind(this.Aion));
+									this.Aion.interface.resume();
+							}
+						});	
+					});
 					break;
 				case 'resume':
 					this.start();

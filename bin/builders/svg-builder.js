@@ -12,6 +12,9 @@ class SvgBuilder {
 			inline: true,
 		};
 		this.watchers = [];
+		this.q = new Promise((res,rej) => {
+            this.loaded = res;
+        });
 
 		let svgo_conf = {
 			plugins: [
@@ -55,6 +58,7 @@ class SvgBuilder {
 		watcher.on('ready', e => {
 			console.log('Watching SVG files...'.bold);
 			this.watchers.push(watcher);
+			this.loaded();
 		});
 		symbols_watcher.on('ready', e => {
 			this.watchers.push(symbols_watcher);

@@ -3,7 +3,6 @@
 	"bs": "{{browsersync}}",
 	"server": "{{server}}",
 	"path": "{{working_directory}}",
-	"script": "{{server_script}}",
   	"proxy": "{{proxy}}",
     "type": "{{type}}",
 	"builders":{
