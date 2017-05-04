@@ -40,15 +40,7 @@ module.exports = function () {
 			{
 				name: 'path',
 				type: 'input',
-				message: 'Working directory',
-				when: answers => {
-					return answers.modules.indexOf('server') >= 0;
-				}
-		},
-			{
-				name: 'script',
-				type: 'input',
-				message: 'Server script path',
+				message: 'Working directory (where apps package.json is)',
 				when: answers => {
 					return answers.modules.indexOf('server') >= 0;
 				},
@@ -114,11 +106,11 @@ module.exports = function () {
 				],
 				filter: choices => {
 					return new Promise((res, rej) => {
-						function ob(n) {
-						  return {[n]: true};
+						function ob(n) {
+							return {[n]: true};
 						}
-
-						choices = _.flatMap(choices, ob);
+						
+						choices = _.flatMap(choices, ob);
 						res(choices);
 					});
 				}

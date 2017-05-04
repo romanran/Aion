@@ -6,6 +6,9 @@ const imageminPngquant = require('imagemin-pngquant');
 class ImgBuilder{
 	
 	constructor(){
+		this.q = new Promise((res,rej) => {
+            this.loaded = res;
+        });
 	}
 	
 	watchAll(){
@@ -13,6 +16,7 @@ class ImgBuilder{
 		watcher.on('ready', e => {
             console.log('Watching IMAGE files...'.bold);
 		    this.watchers = [watcher];
+			this.loaded();
         });
 		watcher.on('all', this.build.bind(this));
 	}

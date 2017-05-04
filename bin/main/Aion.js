@@ -11,8 +11,8 @@ class Aion {
 		deb('  ______   __                     \r\n \/      \\ |  \\                    \r\n|  $$$$$$\\ \\$$  ______   _______  \r\n| $$__| $$|  \\ \/      \\ |       \\ \r\n| $$    $$| $$|  $$$$$$\\| $$$$$$$\\\r\n| $$$$$$$$| $$| $$  | $$| $$  | $$\r\n| $$  | $$| $$| $$__\/ $$| $$  | $$\r\n| $$  | $$| $$ \\$$    $$| $$  | $$\r\n \\$$   \\$$ \\$$  \\$$$$$$  \\$$   \\$$\r\n                                  \r\n'.green.bold);
 		this.possible = ['css', 'js', 'img', 'svg', 'font'];
 		this.builders = [];
+		this.builders_q = [];
 		this.Builders = {};
-
 	}
 
 	static checkConfig() {
@@ -21,7 +21,7 @@ class Aion {
 				if (err) {
 					if (err.code == 'ENOENT') {
 						deb('No config file!'.red.bold);
-						const config = require('./config');
+						const config = require('./config-prompt');
 						return config().then(resolve);
 					}
 					return reject(err);
@@ -73,17 +73,9 @@ class Aion {
 				},
 				done => {
 					if (this.project.server) {
-						const nodemon = require('nodemon');
-						this.nodemon = nodemon({
-							script: this.project.script,
-							stdout: true,
-							cwd: this.project.path
-						});
-						this.nodemon.on('start', () => {
-							done();
-						});
-						this.nodemon.on('crash', () => {
-							this.nodemon.emit('restart');
+						const exec = require('child_process').exec;
+						exec('npm start', {cwd: this.project.path},(error, stdout, stderr) => {
+							done(error);
 						});
 					} else {
 						done();
@@ -120,9 +112,12 @@ class Aion {
 
 	watch(type) {
 		if (_.indexOf(this.possible, type) >= 0) {
-			let builder = new this.Builders[type](this.project);
-			builder.watchAll();
-			this.builders.push(builder);
+			if(_.findIndex(this.project.builders, type) >= 0){
+				let builder = new this.Builders[type](this.project);
+				builder.watchAll();
+				this.builders.push(builder);
+				this.builders_q.push(builder.q);
+			}
 		} else if (_.isUndefined(type)) {
 			_.forEach(this.possible, this.watch.bind(this));
 		}
@@ -148,7 +143,7 @@ class Aion {
 		_.forEach(this.builders, builder => {
 			this.stopWatch.call(builder);
 		});
-		this.loadDeps();
+
 		let q = new Promise((res, rej) => {
 			if (this.project.bs && _.hasIn(this, 'bs.exit')) {
 				this.bs.exit();
@@ -169,19 +164,20 @@ class Aion {
 		if (_.indexOf(this.possible, type) >= 0) {
 			let builder = new this.Builders[type](this.project);
 			switch (type) {
-				case this.possible[0]: //js
-					builder.buildAll();
-					break;
-				case this.possible[1]: //img
+				case 'css':
+					builder.startLess();
 					builder.build();
 					break;
-				case this.possible[2]: //css
-					builder.startLess().then(builder.build.bind(builder));
-					break;
-				case this.possible[3]: //svg
+				case 'js':
 					builder.buildAll();
 					break;
-				case this.possible[4]: //font
+				case 'img':
+					builder.build();
+					break;
+				case 'svg':
+					builder.buildAll();
+					break;
+				case 'font':
 					builder.build();
 					break;
 			}
@@ -206,6 +202,39 @@ class Aion {
 			this.emit('message', {
 				message: 'Change in the Aion, restarting...',
 				event: 'restart'
+			});
+		});
+		if(_.isUndefined(this.interface)){
+			const readline = require('readline');
+			this.interface = readline.createInterface({
+			  input: process.stdin,
+			  output: process.stdout,
+			  terminal: true
+			});
+		}
+
+		Promise.all(this.builders_q).then(e => {
+			console.log(' ');
+			console.log('--   AION ready   --'.green.bold);
+			console.log('-- Type in "s" or "stop" to stop the Aion --  '.bold.yellow);
+			if(this.interface){
+			   this.interface.resume();
+		    }
+			this.interface.once('line', (line) => {
+				switch (line){
+					case 's' || 'stop':
+						this.emit('message', {
+							message: 'Stopping the Aion...',
+							event: 'stop'
+						});	
+					break;
+					case 'rs' || 'restart':
+						this.emit('message', {
+							message: 'Restarting...',
+							event: 'restart'
+						});	
+					break;
+				}
 			});
 		});
 	}

@@ -12,6 +12,9 @@ class JsBuilder {
 	constructor(project) {
 		this.project = project;
 		this.watchers = [];
+		this.q = new Promise((res,rej) => {
+            this.loaded = res;
+        });
 	}
 	
 	watchMain(){
@@ -23,6 +26,7 @@ class JsBuilder {
 		watcher.on('ready', e => {
 			this.watchers.push(watcher);
 			console.log('Watching JS files...'.bold);
+			this.loaded();
 		});
 
 		watcher.on('all', (e, where) => {
@@ -186,7 +190,8 @@ class JsBuilder {
 
 		console.log('Minifying compiled libraries...'.bold);
 		let data_min = UglifyJS.minify(_.toString(this.libs_data), {
-			fromString: true
+			fromString: true,
+			mangle: false
 		});
 
 		fs.writeFile(paths.project + '/dist/js/libs.min.js', data_min.code, 'utf8', err => {
