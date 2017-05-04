@@ -35,12 +35,12 @@ class Aion {
 		return new Promise((res, rej) => {
 			asynch.series([
 				done => {
-					this.loadConfig().then(e=>{
+					this.loadConfig().then(e => {
 						this.loadDeps();
 						return done(null);
 					}).catch(err => {
-						return done(err);	
-					});	
+						return done(err);
+					});
 				},
 				done => {
 					if (this.project.bs) {
@@ -74,7 +74,9 @@ class Aion {
 				done => {
 					if (this.project.server) {
 						const exec = require('child_process').exec;
-						exec('npm start', {cwd: this.project.path},(error, stdout, stderr) => {
+						exec('npm start', {
+							cwd: this.project.path
+						}, (error, stdout, stderr) => {
 							done(error);
 						});
 					} else {
@@ -82,19 +84,19 @@ class Aion {
 					}
 				}
 			], (err, data) => {
-				if(err){
+				if (err) {
 					return handleError(err);
-			    }
+				}
 				deb('-- AION task runner initiated --'.green.bold);
 				res();
 			});
 		});
 	}
-	
-	
+
+
 	loadConfig() {
 		return new Promise((resolve, reject) => {
-			Aion.checkConfig().then(() =>{
+			Aion.checkConfig().then(() => {
 				this.project = cleanRequire(paths.project + '/src/config.json');
 				this.bs_conf = cleanRequire(paths.configs + '/bs-config.js');
 				return resolve();
@@ -112,7 +114,7 @@ class Aion {
 
 	watch(type) {
 		if (_.indexOf(this.possible, type) >= 0) {
-			if(_.findIndex(this.project.builders, type) >= 0){
+			if (_.findIndex(this.project.builders, type) >= 0) {
 				let builder = new this.Builders[type](this.project);
 				builder.watchAll();
 				this.builders.push(builder);
@@ -139,6 +141,14 @@ class Aion {
 		});
 	}
 
+	start() {
+		this.serve().then(() => {
+			this.watch();
+			this.watchSelf();
+		});
+
+	}
+
 	stop() {
 		_.forEach(this.builders, builder => {
 			this.stopWatch.call(builder);
@@ -158,6 +168,15 @@ class Aion {
 			}
 		});
 		return q;
+	}
+
+	quit() {
+		if (this.interface) {
+			this.interface.close();
+		}
+		this.stop().then(function () {
+			process.exit();
+		});
 	}
 
 	build(type) {
@@ -191,51 +210,79 @@ class Aion {
 	}
 
 	watchSelf() {
-		const events = cleanRequire('events');
-		_.unset(this, ['emitter', 'watcher']);
-		this.emitter = new events.EventEmitter();
-		this.watcher = chokidar.watch(['**/*.js', 'package.json', paths.project + 'src/config.js'], {
-			cwd: paths.base,
-			ignoreInitial: true
-		});
-		this.watcher.on('all', e => {
-			this.emit('message', {
-				message: 'Change in the Aion, restarting...',
-				event: 'restart'
-			});
-		});
-		if(_.isUndefined(this.interface)){
-			const readline = require('readline');
-			this.interface = readline.createInterface({
-			  input: process.stdin,
-			  output: process.stdout,
-			  terminal: true
-			});
-		}
 
 		Promise.all(this.builders_q).then(e => {
+			let ready = true;
+			if (_.isUndefined(this.interface)) {
+				const readline = require('readline');
+				this.interface = readline.createInterface({
+					input: process.stdin,
+					output: process.stdout,
+					terminal: false
+				});
+
+				this.interface.on('line', _.debounce((line) => {
+					if (!ready) {
+						return 0;
+					}
+					this.interface.pause();
+					switch (_.toLower(line)) {
+						case 's' || 'stop':
+							const menu = require(paths.main + '/stopped-menu').bind(this);
+							menu().then(answers => {
+								//							deb(JSON.stringify(answers, null, '  '));
+								switch (answers.choice) {
+									case 'resume':
+										this.start();
+										this.interface.resume();
+										break;
+									case 'quit':
+										this.quit();
+										break;
+									case 'build':
+										_.forEach(answers.builders, this.build.bind(this));
+										this.interface.resume();
+										break;
+								}
+							});
+							break;
+						case 'rs' || 'restart':
+							this.stop().then(() => {
+								this.serve().then(() => {
+									this.watch();
+									this.watchSelf();
+								});
+							});
+							break;
+						case 'q' || 'quit':
+							this.quit();
+							break;
+						case 'h' || 'help':
+							let color = 'cyan';
+							console.log('type in the ' + 'string' [color] + ' and hit enter:');
+							console.log('s' [color] + ' or ' + 'stop' [color] + ' to stop the builders from watching changes in files and show Aion menu');
+							console.log('rs' [color] + ' or ' + 'restart' [color] + ' to restart builders');
+							console.log('q' [color] + ' or ' + 'quit' [color] + ' to shutdown watchers and exit the process');
+							console.log('h' [color] + ' or ' + 'help' [color] + ' for list of command');
+							this.interface.resume();
+							break;
+						default:
+							console.log('Type in "h" or "help" and hit enter for the list of available commands');
+							this.interface.resume();
+					}
+				}, 100));
+				this.interface.on('pause', () => {
+					ready = false;
+				});
+				this.interface.on('resume', () => {
+					ready = true;
+				});
+			}
+			
 			console.log(' ');
 			console.log('--   AION ready   --'.green.bold);
-			console.log('-- Type in "s" or "stop" to stop the Aion --  '.bold.yellow);
-			if(this.interface){
-			   this.interface.resume();
-		    }
-			this.interface.once('line', (line) => {
-				switch (line){
-					case 's' || 'stop':
-						this.emit('message', {
-							message: 'Stopping the Aion...',
-							event: 'stop'
-						});	
-					break;
-					case 'rs' || 'restart':
-						this.emit('message', {
-							message: 'Restarting...',
-							event: 'restart'
-						});	
-					break;
-				}
-			});
+			console.log('-- Type in "s" to stop, "h" for list of commands --'.bold.yellow);
+
 		});
 	}
 }
