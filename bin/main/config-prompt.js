@@ -119,8 +119,8 @@ module.exports = function () {
 
 		inq.prompt(questions).then((answers) => {
 			let data = answers;
-			data.bs = _.has(answers.modules, 'bs');
-			data.server = _.has(answers.modules, 'server');
+			data.bs = _.indexOf(answers.modules, 'bs') >= 0;
+			data.server = _.indexOf(answers.modules, 'server') >= 0;
 			_.unset(data, 'modules');		
 			fs.outputJson(paths.project + '/src/config.json', answers, err => {
 				if (err) {

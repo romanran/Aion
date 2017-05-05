@@ -77,8 +77,9 @@ class Aion {
 						exec('npm start', {
 							cwd: this.project.path
 						}, (error, stdout, stderr) => {
-							done(error);
+//							done(error);
 						});
+                        done();
 					} else {
 						done();
 					}
