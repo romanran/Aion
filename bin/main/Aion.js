@@ -159,10 +159,7 @@ class Aion {
 				this.bs.exit();
 			}
 			if (this.project.server) {
-				this.nodemon.emit('quit');
-				this.nodemon.once('exit', () => {
-					res();
-				});
+                res();
 			} else {
 				res();
 			}
@@ -228,6 +225,7 @@ class Aion {
 					this.interface.pause();
 					switch (_.toLower(line)) {
 						case 's' || 'stop':
+                            this.stop();
 							const menu = require(paths.main + '/stopped-menu').bind(this);
 							menu().then(answers => {
 								//							deb(JSON.stringify(answers, null, '  '));
