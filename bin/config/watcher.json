@@ -1,8 +1,8 @@
 {
-    "persistent": false,
     "ignoreInitial": true,
     "awaitWriteFinish": {
         "stabilityThreshold": 100,
         "pollInterval": 20
-    }
+    },
+    "depth": 4
 }

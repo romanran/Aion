@@ -3,7 +3,9 @@ const watcher_opts = require(paths.configs + '/watcher');
 class FontBuilder {
 
 	constructor() {
-
+		this.q = new Promise((res,rej) => {
+            this.loaded = res;
+        });
 	}
 
 	convert() {
@@ -15,6 +17,7 @@ class FontBuilder {
 		watcher.on('ready', () => {
 			console.log('Watching FONT files...'.bold);
 			this.watchers = [watcher];
+			this.loaded();
 		});
 		watcher.on('all', this.move.bind(this));
 
