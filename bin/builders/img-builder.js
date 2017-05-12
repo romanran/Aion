@@ -1,28 +1,28 @@
+const watcher_opts = require(paths.configs + '/watcher');
+const imagemin = require('imagemin');
+const imageminMozjpeg = require('imagemin-mozjpeg');
+const imageminPngquant = require('imagemin-pngquant');
+
 class ImgBuilder{
+	
 	constructor(){
-		this.imagemin = require('imagemin');
-		this.imageminMozjpeg = require('imagemin-mozjpeg');
-		this.imageminPngquant = require('imagemin-pngquant');
-		this.watcher_opts = {
-			ignoreInitial: true,
-			awaitWriteFinish:{
-				stabilityThreshold: 50,//(default: 2000). Amount of time in milliseconds for a file size to remain constant before emitting its event.
-				pollInterval:20 // (default: 100). File size polling interval.
-			}
-		};
 	}
+	
 	watchAll(){
-		let watcher = chokidar.watch( paths.project + '/src/IMG/*.{jpg,jpeg,png}', this.watcher_opts);
-		console.log('Watching IMAGE files...'.bold);
+		let watcher = chokidar.watch( paths.project + '/src/IMG/*.{jpg,jpeg,png}', watcher_opts);
+		watcher.on('ready', e => {
+            console.log('Watching IMAGE files...'.bold);
+		    this.watchers = [watcher];
+        });
 		watcher.on('all', this.build.bind(this));
 	}
 	
 	build(e, where){
 		console.log('  ---- IMAGES build initialized ----   '.bgBlue.bold);
-		this.imagemin([ paths.project +'/src/IMG/*.{jpg,jpeg,png}'], '../dist/images', {
+		imagemin([ paths.project +'/src/IMG/*.{jpg,jpeg,png}'], '../dist/images', {
 			plugins: [
-				this.imageminMozjpeg(),
-				this.imageminPngquant({quality: '65-80'})
+				imageminMozjpeg(),
+				imageminPngquant({quality: '65-80'})
 			]
 		}).then(files => {
 			let total = 0;
@@ -38,4 +38,5 @@ class ImgBuilder{
 		});	
 	}
 }
+
 module.exports = ImgBuilder;

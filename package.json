@@ -7,9 +7,19 @@
     "postinstall": "node bin/main/postinstall",
     "test": "test",
     "notify": "node-notifier",
-    "prestart": "npm i",
-    "start": "node bin/main/nodemon",
-    "restart": "npm start"
+    "prestart": "npm -v",
+    "start": "node bin/operators/main-dev",
+    "restart": "npm start",
+    "build:all": "node bin/operators/build",
+    "build": "node bin/operators/build",
+    "build:js": "node bin/operators/build --build js",
+    "build:css": "node bin/operators/build --build css",
+    "build:less": "node bin/operators/build --build css",
+    "build:svg": "node bin/operators/build --build svg",
+    "build:img": "node bin/operators/build --build img",
+    "build:fonts": "node bin/operators/build --build font",
+    "jshint": "jshint --reporter=node_modules/jshint-stylish",
+    "check": "jshint --reporter=node_modules/jshint-stylish ./bin/. || ECHO"
   },
   "repository": {
     "type": "git",
@@ -18,7 +28,7 @@
   "author": "TDSOFT",
   "license": "BSD-Protection",
   "homepage": "https://bitbucket.org/RomanRanniew/tdsoft_aion#readme",
-  "devDependencies": {
+  "dependencies": {
     "async": "^2.1.4",
     "babel": "^6.5.2",
     "babel-core": "^6.22.1",
@@ -28,6 +38,7 @@
     "browserify": "^13.3.0",
     "bs-eslint-message": "0.0.3",
     "chokidar": "^1.6.1",
+    "cli-spinner": "^0.2.6",
     "colors": "^1.1.2",
     "css-mqpacker": "^5.0.1",
     "fs": "0.0.1-security",
@@ -37,6 +48,7 @@
     "imagemin": "^5.2.2",
     "imagemin-mozjpeg": "^6.0.0",
     "imagemin-pngquant": "^5.0.0",
+    "ip": "^1.1.5",
     "less": "^2.7.1",
     "less-plugin-autoprefix": "^1.5.1",
     "less-plugin-clean-css": "^1.5.1",
@@ -49,13 +61,11 @@
     "node-flag": "^1.5.1",
     "node-notifier": "^4.6.1",
     "nodemon": "^1.11.0",
-    "parallelshell": "^2.0.0",
     "path": "^0.12.7",
-    "portfinder": "^1.0.13",
+    "portscanner": "^2.1.1",
     "postcss": "^5.2.6",
     "postcss-size": "^1.0.0",
     "postcss-sprites": "^4.1.1",
-    "prettydiff": "^99.0.1",
     "prompt": "^1.0.0",
     "strip-debug": "^1.1.1",
     "svgmin": "^0.1.0",
@@ -63,5 +73,9 @@
     "svgstore": "^2.0.2",
     "uglify-js": "^2.7.5",
     "util": "^0.10.3"
+  },
+  "devDependencies": {
+    "jshint": "^2.9.4",
+    "jshint-stylish": "^2.2.1"
   }
 }

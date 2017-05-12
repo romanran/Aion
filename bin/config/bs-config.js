@@ -1,9 +1,9 @@
 module.exports = {
-    "files": ["!node_modules", "../dist/**/*.css", "../dist/**/*.(js|png|jpg|svg)", "../**/*.php","!../**/includes", "!**/*.*", "../**/*.html"],
-    "server": false,
-    "proxy": null,
-    "notify": {
-        "styles": [
+    'files': ['!node_modules', '../dist/**/*.css', '../dist/**/*.(js|png|jpg|svg)', '../**/*.php','!../**/includes', '!**/*.*', '../**/*.html'],
+    'server': false,
+    'proxy': null,
+    'notify': {
+        'styles': [
             'position: fixed;',
             'right:0;',
             'bottom:0px;',

@@ -1,0 +1,18 @@
+{
+    "filename": null,
+    "depends": false,
+    "compress": false,
+    "max_line_len": -1,
+    "lint": true,
+    "paths": [],
+    "color": true,
+    "strictImports": false,
+    "relativeUrls": false,
+    "ieCompat": false,
+    "strictMath": true,
+    "strictUnits": false,
+    "urlArgs": "",
+    "sourceMap": {
+        "sourceMapFileInline": false
+    }
+}
