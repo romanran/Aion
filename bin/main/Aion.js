@@ -42,52 +42,55 @@ class Aion {
 						return done(err);
 					});
 				},
-				done => {
-					if (this.project.bs) {
-						this.bs = require('browser-sync').create(this.project.name);
-						const ip = require('ip');
-						const portscanner = require('portscanner');
+                done => {
+                    if (this.project.bs) {
+                        this.bs = require('browser-sync').create(this.project.name);
+                        const ip = require('ip');
+                        const portscanner = require('portscanner');
 
-						let spinner = new Spinner('Starting Browser-sync %s'.cyan.bold);
-						spinner.setSpinnerString(18);
-						spinner.start();
+                        let spinner = new Spinner('Starting Browser-sync %s'.cyan.bold);
+                        spinner.setSpinnerString(18);
+                        spinner.start();
 
-						let this_ip = ip.address();
-						portscanner.findAPortNotInUse(3000, 3100, this_ip, (err, port) => {
-							this.bs_conf.proxy = {
-								target: this.project.proxy,
-								ws: true
-							};
-							this.bs_conf.host = this_ip;
-							this.bs_conf.port = port;
-							this.bs_process = this.bs.init(this.bs_conf);
-							this.bs_process.emitter.on('init', () => {
-								deb('');
-								spinner.stop(true);
-								done();
-							});
-						});
-					} else {
-						done();
-					}
-				},
-				done => {
-					if (this.project.server) {
-						const exec = require('child_process').exec;
-						exec('npm start', {
-							cwd: this.project.path
-						}, (error, stdout, stderr) => {
-//							done(error);
-						});
+                        let this_ip = ip.address();
+                        portscanner.findAPortNotInUse(3000, 3100, this_ip, (err, port) => {
+                            this.bs_conf.proxy = {
+                                target: this.project.proxy,
+                                ws: true
+                            };
+                            this.bs_conf.host = this_ip;
+                            this.bs_conf.port = port;
+                            this.bs_process = this.bs.init(this.bs_conf);
+                            this.bs_process.emitter.on('init', () => {
+                                deb('');
+                                spinner.stop(true);
+                                done();
+                            });
+                        });
+                    } else {
                         done();
-					} else {
-						done();
-					}
-				}
-			], (err, data) => {
-				if (err) {
-					return handleError(err);
-				}
+                    }
+                },
+                done => {
+                    if (this.project.server) {
+                        const exec = require('child_process').exec;
+                        let child = exec('npm start --color --ansi', {
+                            cwd: this.project.path,
+                            maxBuffer: 1024 * 2048,
+                            stdio: 'inherit'
+                        });
+                        child.stdout.on('data', function (data) {
+                            console.log(data);
+                        });
+                        done();
+                    } else {
+                        done();
+                    }
+                }
+            ], (err, data) => {
+                if (err) {
+                    return handleError(err);
+                }
 				deb('-- AION task runner initiated --'.green.bold);
 				res();
 			});
