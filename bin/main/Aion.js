@@ -253,6 +253,7 @@ class Aion {
 								this.serve().then(() => {
 									this.watch();
 									this.watchSelf();
+									this.interface.resume();
 								});
 							});
 							break;
@@ -262,7 +263,7 @@ class Aion {
 						case 'h' || 'help':
 							let color = 'cyan';
 							console.log('type in the ' + 'string' [color] + ' and hit enter:');
-							console.log('s' [color] + ' or ' + 'stop' [color] + ' to stop the builders from watching changes in files and show Aion menu');
+							console.log('s' [color] + ' or ' + 'stop' [color] + ' to stop(PAUSE) the builders from watching changes in files and show Aion menu');
 							console.log('rs' [color] + ' or ' + 'restart' [color] + ' to restart builders');
 							console.log('q' [color] + ' or ' + 'quit' [color] + ' to shutdown watchers and exit the process');
 							console.log('h' [color] + ' or ' + 'help' [color] + ' for list of command');
@@ -283,7 +284,7 @@ class Aion {
 			
 			console.log(' ');
 			console.log('--   AION ready   --'.green.bold);
-			console.log('-- Type in "s" to stop, "h" for list of commands --'.bold.yellow);
+			console.log('-- Type in "s" to stop(PAUSE) watching, "h" for the list of all available commands --'.bold.yellow);
 
 		});
 	}
