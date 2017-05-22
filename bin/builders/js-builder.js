@@ -78,7 +78,7 @@ class JsBuilder {
 			detectGlobals: false,
 		});
 
-		bify.add(paths.project + '/src/JS/main/main.js');
+		bify.add(file);
 
 		bify.transform(babelify, {presets: [es2015]});
 		
