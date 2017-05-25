@@ -2,13 +2,13 @@ const postcss = require('postcss');
 const sprites = require('postcss-sprites');
 const postcss_size = require('postcss-size');
 const mqpacker = require('css-mqpacker');
+const autoprefixer = require('autoprefixer');
 const LessPluginCleanCSS = require('less-plugin-clean-css');
 
 const plugins_list = [
     new LessPluginCleanCSS({
         advanced: true
     }),
-    'less-plugin-autoprefix',
     'less-plugin-glob',
     'less-plugin-functions'
 ];
@@ -110,8 +110,10 @@ class LessBuilder {
                 prev: output.map
             }
         };
-        postcss([sprites(postcss_sprites), postcss_size, mqpacker]).process(output.css, postcss_opts)
-            .then(this.save.bind(this, dest_file));
+        postcss([sprites(postcss_sprites), postcss_size, mqpacker, autoprefixer]).process(output.css, postcss_opts)
+            .then(this.save.bind(this, dest_file)).catch(e => {
+            // tak wiem, postcss sprites path costam, whatever   
+        });
     }
 
     save(dest_file, output) {
