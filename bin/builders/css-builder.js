@@ -3,12 +3,14 @@ const sprites = require('postcss-sprites');
 const postcss_size = require('postcss-size');
 const mqpacker = require('css-mqpacker');
 const LessPluginCleanCSS = require('less-plugin-clean-css');
+const LessPluginAutoPrefix = require('less-plugin-autoprefix');
 
 const plugins_list = [
     new LessPluginCleanCSS({
         advanced: true
     }),
-    'less-plugin-autoprefix',
+    new LessPluginAutoPrefix({browsers: ['last 2 versions', 'Safari >= 4']}),
+
     'less-plugin-glob',
     'less-plugin-functions'
 ];
