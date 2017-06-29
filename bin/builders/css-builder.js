@@ -14,7 +14,8 @@ const plugins_list = [
 ];
 
 const viewport_opts = {
-    viewportWidth: 1280,
+    viewportWidth: 1440,
+    mediaQuery: false
 
 }
 
