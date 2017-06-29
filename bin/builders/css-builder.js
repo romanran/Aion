@@ -13,6 +13,11 @@ const plugins_list = [
     'less-plugin-functions'
 ];
 
+const viewport_opts = {
+    viewportWidth: 1280,
+
+}
+
 const watcher_opts = require(paths.configs + '/watcher');
 let less_options = require(paths.configs + '/less');
 const postcss_sprites = require(paths.configs + '/postcss-sprites');
@@ -110,7 +115,7 @@ class LessBuilder {
                 prev: output.map
             }
         };
-        postcss([sprites(postcss_sprites), postcss_size, mqpacker, autoprefixer]).process(output.css, postcss_opts)
+        postcss([sprites(postcss_sprites), postcss_size, mqpacker, autoprefixer, require('postcss-px-to-viewport')(viewport_opts)]).process(output.css, postcss_opts)
             .then(this.save.bind(this, dest_file)).catch(e => {
             // tak wiem, postcss sprites path costam, whatever   
         });
