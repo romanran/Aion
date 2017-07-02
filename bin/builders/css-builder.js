@@ -1,11 +1,11 @@
 const postcss = require('postcss');
-const sprites = require('postcss-sprites');
 const postcss_size = require('postcss-size');
 const mqpacker = require('css-mqpacker');
 const autoprefixer = require('autoprefixer');
 const LessPluginCleanCSS = require('less-plugin-clean-css');
+const css_plugs = cleanRequire(`${paths.project}/src/aion-plugins/css/plugins`);
 
-const plugins_list = [
+let plugins_list = [
     new LessPluginCleanCSS({
         advanced: true
     }),
@@ -13,16 +13,16 @@ const plugins_list = [
     'less-plugin-functions'
 ];
 
-const viewport_opts = {
-    viewportWidth: 1440,
-    mediaQuery: false
-
-}
-
 const watcher_opts = require(paths.configs + '/watcher');
 let less_options = require(paths.configs + '/less');
-const postcss_sprites = require(paths.configs + '/postcss-sprites');
 
+let postcss_plugins = [postcss_size, mqpacker, autoprefixer];
+if (_.hasIn(css_plugs, 'postcss')) {
+	postcss_plugins = _.merge(postcss_plugins, css_plugs.postcss);
+}
+if (_.hasIn(css_plugs, 'less')) {
+	plugins_list = _.merge(plugins_list, css_plugs.less);
+}
 class LessBuilder {
 
     constructor(project) {
@@ -101,25 +101,26 @@ class LessBuilder {
         this.compiler
             .render(data, less_options)
             .then(this.postProcess.bind(this, dest_file))
+			.then(this.save.bind(this, dest_file))
             .catch(err => {
                 return this.lessError(err, dest_file);
             });
     }
 
     postProcess(dest_file, output, err) {
-        if (err) {
-            return this.lessError(err, dest_file);
-        }
-        const postcss_opts = {
-            map: {
-                inline: false,
-                prev: output.map
-            }
-        };
-        postcss([sprites(postcss_sprites), postcss_size, mqpacker, autoprefixer, require('postcss-px-to-viewport')(viewport_opts)]).process(output.css, postcss_opts)
-            .then(this.save.bind(this, dest_file)).catch(e => {
-            // tak wiem, postcss sprites path costam, whatever   
-        });
+    	return new Promise((resolve, reject)=>{
+			if (err) {
+				return reject(err, dest_file);
+			}
+			const postcss_opts = {
+				map: {
+					inline: false,
+					prev: output.map
+				}
+			};
+			postcss(postcss_plugins).process(output.css, postcss_opts)
+				.then(resolve).catch(reject);
+		});
     }
 
     save(dest_file, output) {
@@ -155,6 +156,10 @@ class LessBuilder {
     lessError(err, dest_file) {
         console.log(dest_file + ' x'.red);
         beep(2);
+        if (!_.hasIn(err, 'file') && !_.hasIn(err, 'filename')) {
+        	console.log(dest_file, err.message);
+        	return 0;
+		}
         let filename = _.hasIn(err, 'filename') ? err.filename.split('\\') : err.file.split('\\');
         filename = filename.splice((filename.length - 2), 2).join('/');
         let err_A = [];
