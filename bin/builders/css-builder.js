@@ -18,10 +18,10 @@ let less_options = require(paths.configs + '/less');
 
 let postcss_plugins = [postcss_size, mqpacker, autoprefixer];
 if (_.hasIn(css_plugs, 'postcss')) {
-	postcss_plugins = _.merge(postcss_plugins, css_plugs.postcss);
+	postcss_plugins = _.concat(postcss_plugins, css_plugs.postcss);
 }
 if (_.hasIn(css_plugs, 'less')) {
-	plugins_list = _.merge(plugins_list, css_plugs.less);
+	plugins_list = _.concat(plugins_list, css_plugs.less);
 }
 class LessBuilder {
 
