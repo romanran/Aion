@@ -1,28 +1,29 @@
 const postcss = require('postcss');
 const postcss_size = require('postcss-size');
 const mqpacker = require('css-mqpacker');
-const autoprefixer = require('autoprefixer');
-const LessPluginCleanCSS = require('less-plugin-clean-css');
 const css_plugs = cleanRequire(`${paths.project}/src/aion-plugins/css/plugins`);
+const LessPluginCleanCSS = require('less-plugin-clean-css');
+const LessPluginAutoPrefix = require('less-plugin-autoprefix');
 
 let plugins_list = [
     new LessPluginCleanCSS({
         advanced: true
     }),
+    new LessPluginAutoPrefix({browsers: ['last 2 versions', 'Safari >= 4']}),
     'less-plugin-glob',
     'less-plugin-functions'
 ];
-
 const watcher_opts = require(paths.configs + '/watcher');
 let less_options = require(paths.configs + '/less');
 
-let postcss_plugins = [postcss_size, mqpacker, autoprefixer];
+let postcss_plugins = [postcss_size, mqpacker];
 if (_.hasIn(css_plugs, 'postcss')) {
-	postcss_plugins = _.concat(postcss_plugins, css_plugs.postcss);
+	postcss_plugins = _.union(postcss_plugins, css_plugs.postcss);
 }
 if (_.hasIn(css_plugs, 'less')) {
-	plugins_list = _.concat(plugins_list, css_plugs.less);
+	plugins_list = _.union(plugins_list, css_plugs.less);
 }
+
 class LessBuilder {
 
     constructor(project) {
