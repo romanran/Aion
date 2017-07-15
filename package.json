@@ -1,13 +1,13 @@
 {
   "name": "tdsoft_aion",
-  "version": "1.0.1",
+  "version": "1.3.0",
   "description": "base dev build tool",
   "private": true,
   "scripts": {
     "postinstall": "node bin/main/postinstall",
     "test": "test",
     "notify": "node-notifier",
-    "prestart": "npm i",
+    "prestart": "npm -v",
     "start": "node bin/operators/main-dev",
     "restart": "npm start",
     "build:all": "node bin/operators/build",

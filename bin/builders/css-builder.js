@@ -77,12 +77,15 @@ class LessBuilder {
     }
     
     build(e, where) {
+		this.done = promise();
         if (where) {
             where = path.parse(where.replace(/\\/g, '/')).name;
             console.log((e.toUpperCase()).bold + ' in file ' + (where).bold);
         }
         console.log('  ---- POSTCSS/LESS build initialized ----   '.bgYellow.black);
         glob(paths.project + '/src/LESS/*.less', (err, files) => {
+			this.files_i = 0;
+        	this.files_l = files.length;
             files.forEach(file => {
                 const dest_file = path.parse(file).name;
                 return fs.readFile(file, 'utf8', (err, data) => {
@@ -91,6 +94,7 @@ class LessBuilder {
                 });
             });
         });
+        return this.done.q;
     }
 
     //compilation function
@@ -98,12 +102,21 @@ class LessBuilder {
         if (handleError(err)) {
             return 0;
         }
+        const next = () => {
+			this.files_i++;
+			deb('CSS FILE NO ', this.files_i, ' OUT OF ', this.files_l);
+			if (this.files_i === this.files_l) {
+				return this.done.resolve();
+			}
+		};
         less_options.filename = path.resolve(file);
         this.compiler
             .render(data, less_options)
             .then(this.postProcess.bind(this, dest_file))
 			.then(this.save.bind(this, dest_file))
+			.then(next.bind(this))
             .catch(err => {
+            	next();
                 return this.lessError(err, dest_file);
             });
     }
@@ -126,14 +139,16 @@ class LessBuilder {
 
     save(dest_file, output) {
         //check files hash
+		const q = promise();
         output.css += '/*# sourceMappingURL=' + dest_file + '.css.map */';
-        
-        if (output.map) {
-            fs.writeFileSync(paths.project + '/dist/css/' + dest_file + '.css.map', output.map);
-        }
-        
-        fs.writeFile(paths.project + '/dist/css/' + dest_file + '.min.css', output.css, err => {
-            if (handleError(err)){ 
+
+		if (output.map) {
+			fs.writeFileSync(paths.project + '/dist/css/' + dest_file + '.css.map', output.map);
+		}
+
+		fs.writeFile(paths.project + '/dist/css/' + dest_file + '.min.css', output.css, err => {
+            if (handleError(err)){
+            	q.resolve(err);
                 return 0;
             }
 
@@ -151,8 +166,10 @@ class LessBuilder {
             }
 
             console.log(' ');
+            q.resolve();
         });
-    }
+		return q;
+	}
 
     lessError(err, dest_file) {
         console.log(dest_file + ' x'.red);
@@ -186,7 +203,9 @@ class LessBuilder {
             title: 'Error in LESS build for ' + filename + ': ',
             message: _.isUndefined(err.message) ? err.reason : err.message
         });
+
     }
+
 }
 
 module.exports = LessBuilder;
