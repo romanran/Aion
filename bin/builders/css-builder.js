@@ -1,7 +1,17 @@
 const postcss = require('postcss');
 const postcss_size = require('postcss-size');
 const mqpacker = require('css-mqpacker');
-const css_plugs = cleanRequire(`${paths.project}/src/aion-plugins/css/plugins`);
+let css_plugs;
+try {
+	css_plugs = cleanRequire(`${paths.project}/src/aion-plugins/css/plugins`);
+} catch (e) {
+	console.error('Packages not found, installing...');
+	const { exec } = require('child_process');
+	exec(`cd ${paths.project}/src/ && npm i`, (err, stdout, stderr) => {
+	  console.log(stdout);
+	  console.log('Please restart the Aion');
+	});
+}; 
 const LessPluginCleanCSS = require('less-plugin-clean-css');
 const LessPluginAutoPrefix = require('less-plugin-autoprefix');
 

@@ -200,7 +200,10 @@ class JsBuilder {
 			});
 
 		} else {
-			console.log('Error: ' + _.hasIn(err, 'message') ? err.message : err);
+			console.log('Error: '.bold.red + _.hasIn(err, 'message') ? err.message : err);
+			if (file.indexOf('lib')) {
+				console.log('Did you remember to do the "npm i" command inside the /src folder?'.bold);	
+			}
 			notifier.notify({
 				message: 'Error: ' + _.hasIn(err, 'message') ? err.message : err,
 				title: 'Failed running browserify'

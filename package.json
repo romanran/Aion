@@ -69,7 +69,7 @@
     "portscanner": "^2.1.1",
     "postcss": "^5.2.6",
     "postcss-px-to-viewport": "0.0.3",
-    "postcss-size": "^1.0.0",
+    "postcss-size": "^1.1.1",
     "postcss-sprites": "^4.1.1",
     "prompt": "^1.0.0",
     "strip-debug": "^1.1.1",
@@ -82,7 +82,6 @@
   },
   "devDependencies": {
     "jshint": "^2.9.4",
-    "jshint-stylish": "^2.2.1",
-    "postcss-pxtorem": "^4.0.1"
+    "jshint-stylish": "^2.2.1"
   }
 }
