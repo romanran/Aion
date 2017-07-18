@@ -33,23 +33,21 @@ class Aion {
 	}
 
 	init(done) {
+		const q = promise();
 		this.loadConfig().then(e => {
 			this.loadDeps();
-			return done(null);
+			return !!done ? done(null) : q.resolve();
 		}).catch(err => {
-			return done(err);
+			return !!done ? done(err) : q.reject(err);
 		});
+		return q;
 	}
 
 	serve() {
 		return new Promise((res, rej) => {
 			asynch.series([
 				done => {
-					this.init(done);
-				},
-				done => {
 					if (this.project.bs) {
-						this.bs = require('browser-sync').create(this.project.name);
 						const ip = require('ip');
 						const portscanner = require('portscanner');
 
@@ -96,7 +94,6 @@ class Aion {
 				if (err) {
 					return handleError(err);
 				}
-				console.success('-- AION task runner initiated --');
 				res();
 			});
 		});
@@ -151,11 +148,11 @@ class Aion {
 	}
 
 	start() {
-		this.serve().then(() => {
+		this.init().q.then(()=> {
+			this.bs = require('browser-sync').create(this.project.name);
 			this.watch();
-			this.watchSelf();
-		});
-
+			this.watchSelf().q.then(this.serve.bind(this));
+		}).catch(console.error);
 	}
 
 	stop() {
@@ -229,6 +226,7 @@ class Aion {
 	}
 
 	watchSelf() {
+		const q = promise();
 		Promise.all(this.builders_q).then(e => {
 			let ready = true;
 			if (_.isUndefined(this.interface)) {
@@ -251,11 +249,7 @@ class Aion {
 							break;
 						case 'rs' || 'restart':
 							this.stop().then(() => {
-								this.serve().then(() => {
-									this.watch();
-									this.watchSelf();
-									this.interface.resume();
-								});
+								this.start();
 							});
 							break;
 						case 'q' || 'quit':
@@ -288,8 +282,9 @@ class Aion {
 			console.log(' ');
 			console.success('--   AION ready   --');
 			console.info('-- Type in "s" to stop(PAUSE) watching, "h" for the list of all available commands --');
-
+			q.resolve();
 		});
+		return q;
 	}
 
 	showMenu() {
