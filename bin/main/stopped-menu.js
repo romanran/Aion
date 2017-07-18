@@ -45,7 +45,6 @@ module.exports = function () {
 		}
 	]).then(function (answers) {
 		if(answers.choice === 'build'){
-			console.log('!! After builds are done, type in "s"(stop) or "r"(resume) !!'.bold.yellow);
 		   	inquirer.prompt(build_checkboxes).then(checks => {
 				answers.builders = checks.builds;
 				q.resolve(answers);

@@ -1,14 +1,14 @@
 /* TODO: 
- - return a promise on all of the builders, run all one after another OR
-   run all of the builds in separate window (fork)
-*/
+ -* DONE return a promise on all of the builders, run all one after another OR
+ run all of the builds in separate window (fork)
+ */
 
 require('./base.js')();
 
 class Aion {
 
 	constructor() {
-		deb('  ______   __                     \r\n \/      \\ |  \\                    \r\n|  $$$$$$\\ \\$$  ______   _______  \r\n| $$__| $$|  \\ \/      \\ |       \\ \r\n| $$    $$| $$|  $$$$$$\\| $$$$$$$\\\r\n| $$$$$$$$| $$| $$  | $$| $$  | $$\r\n| $$  | $$| $$| $$__\/ $$| $$  | $$\r\n| $$  | $$| $$ \\$$    $$| $$  | $$\r\n \\$$   \\$$ \\$$  \\$$$$$$  \\$$   \\$$\r\n                                  \r\n'.green.bold);
+		console.success('  ______   __                     \r\n \/      \\ |  \\                    \r\n|  $$$$$$\\ \\$$  ______   _______  \r\n| $$__| $$|  \\ \/      \\ |       \\ \r\n| $$    $$| $$|  $$$$$$\\| $$$$$$$\\\r\n| $$$$$$$$| $$| $$  | $$| $$  | $$\r\n| $$  | $$| $$| $$__\/ $$| $$  | $$\r\n| $$  | $$| $$ \\$$    $$| $$  | $$\r\n \\$$   \\$$ \\$$  \\$$$$$$  \\$$   \\$$   v1.3.0\r\n                                  \r\n ');
 		this.possible = ['css', 'js', 'img', 'svg', 'font'];
 		this.builders = [];
 		this.builders_q = [];
@@ -19,8 +19,8 @@ class Aion {
 		return new Promise((resolve, reject) => {
 			fs.stat(paths.project + '/src/config.json', (err, stat) => {
 				if (err) {
-					if (err.code == 'ENOENT') {
-						deb('No config file!'.red.bold);
+					if (err.code === 'ENOENT') {
+						console.error('No config file!');
 						const config = require('./config-prompt');
 						return config().then(resolve);
 					}
@@ -31,67 +31,71 @@ class Aion {
 		});
 	}
 
+	init(done) {
+		this.loadConfig().then(e => {
+			this.loadDeps();
+			return done(null);
+		}).catch(err => {
+			return done(err);
+		});
+	}
+
 	serve() {
 		return new Promise((res, rej) => {
 			asynch.series([
 				done => {
-					this.loadConfig().then(e => {
-						this.loadDeps();
-						return done(null);
-					}).catch(err => {
-						return done(err);
-					});
+					this.init(done);
 				},
-                done => {
-                    if (this.project.bs) {
-                        this.bs = require('browser-sync').create(this.project.name);
-                        const ip = require('ip');
-                        const portscanner = require('portscanner');
+				done => {
+					if (this.project.bs) {
+						this.bs = require('browser-sync').create(this.project.name);
+						const ip = require('ip');
+						const portscanner = require('portscanner');
 
-                        let spinner = new Spinner('Starting Browser-sync %s'.cyan.bold);
-                        spinner.setSpinnerString(18);
-                        spinner.start();
+						let spinner = new Spinner(ch_loading('Starting Browser-sync %s'));
+						spinner.setSpinnerString(18);
+						spinner.start();
 
-                        let this_ip = ip.address();
-                        portscanner.findAPortNotInUse(3000, 3100, this_ip, (err, port) => {
-                            this.bs_conf.proxy = {
-                                target: this.project.proxy,
-                                ws: true
-                            };
-                            this.bs_conf.host = this_ip;
-                            this.bs_conf.port = port;
-                            this.bs_process = this.bs.init(this.bs_conf);
-                            this.bs_process.emitter.on('init', () => {
-                                deb('');
-                                spinner.stop(true);
-                                done();
-                            });
-                        });
-                    } else {
-                        done();
-                    }
-                },
-                done => {
-                    if (this.project.server) {
-                        const exec = require('child_process').exec;
-                        let child = exec('npm start --color --ansi', {
-                            cwd: this.project.path,
-                            maxBuffer: 1024 * 2048,
-                            stdio: 'inherit'
-                        });
-                        child.stdout.on('data', function (data) {
-                            console.log(data);
-                        });
-                        done();
-                    } else {
-                        done();
-                    }
-                }
-            ], (err, data) => {
-                if (err) {
-                    return handleError(err);
-                }
-				deb('-- AION task runner initiated --'.green.bold);
+						let this_ip = ip.address();
+						portscanner.findAPortNotInUse(3000, 3100, this_ip, (err, port) => {
+							this.bs_conf.proxy = {
+								target: this.project.proxy,
+								ws: true
+							};
+							this.bs_conf.host = this_ip;
+							this.bs_conf.port = port;
+							this.bs_process = this.bs.init(this.bs_conf);
+							this.bs_process.emitter.on('init', () => {
+								deb('');
+								spinner.stop(true);
+								done();
+							});
+						});
+					} else {
+						done();
+					}
+				},
+				done => {
+					if (this.project.server) {
+						const exec = require('child_process').exec;
+						let child = exec('npm start --color --ansi', {
+							cwd: this.project.path,
+							maxBuffer: 1024 * 2048,
+							stdio: 'inherit'
+						});
+						child.stdout.on('data', function (data) {
+							console.log(data);
+						});
+						done();
+					} else {
+						done();
+					}
+				}
+			], (err, data) => {
+				if (err) {
+					return handleError(err);
+				}
+				console.success('-- AION task runner initiated --');
 				res();
 			});
 		});
@@ -154,21 +158,21 @@ class Aion {
 	}
 
 	stop() {
+		console.success('--   AION stopped   --');
 		_.forEach(this.builders, builder => {
 			this.stopWatch.call(builder);
 		});
 
-		let q = new Promise((res, rej) => {
+		return new Promise((res, rej) => {
 			if (this.project.bs && _.hasIn(this, 'bs.exit')) {
 				this.bs.exit();
 			}
 			if (this.project.server) {
-                res();
+				res();
 			} else {
 				res();
 			}
 		});
-		return q;
 	}
 
 	quit() {
@@ -181,37 +185,49 @@ class Aion {
 	}
 
 	build(type) {
-		if (_.indexOf(this.possible, type) >= 0) {
-			let builder = new this.Builders[type](this.project);
-			switch (type) {
-				case 'css':
-					builder.startLess();
-					builder.build();
-					break;
-				case 'js':
-					builder.buildAll();
-					break;
-				case 'img':
-					builder.build();
-					break;
-				case 'svg':
-					builder.buildAll();
-					break;
-				case 'font':
-					builder.build();
-					break;
+		return new Promise((resolve, reject) => {
+				if (_.indexOf(this.possible, type) >= 0) {
+					let builder = new this.Builders[type](this.project);
+					switch (type) {
+						case 'css':
+							builder.startLess();
+							builder.build().then(resolve);
+							break;
+						case 'js':
+							builder.buildAll().then(resolve);
+							break;
+						case 'img':
+							builder.build().then(resolve);
+							break;
+						case 'svg':
+							builder.buildAll().then(resolve);
+							break;
+						case 'font':
+							builder.build().then(resolve);
+							break;
+					}
+				} else if (_.isEmpty(type) || typeof(type) === 'object') {
+					let array = this.possible;
+					if (typeof(type) === 'object' && !_.isNull(type)) {
+						if (type.indexOf('all') < 0) {
+							array = type;
+						}
+					}
+					const build = (i) => {
+						setTimeout(() => {
+							if (i === array.length) {
+								return resolve();
+							}
+							return this.build(array[i]).then(build.bind(this, ++i));
+						}, 20);
+					};
+					build(0);
+				}
 			}
-		} else if (_.isEmpty(type) || type === 'all') {
-			_.forEach(this.possible, this.build.bind(this));
-		}
-	}
-
-	emit(event, data) {
-		this.emitter.emit(event, data);
+		);
 	}
 
 	watchSelf() {
-
 		Promise.all(this.builders_q).then(e => {
 			let ready = true;
 			if (_.isUndefined(this.interface)) {
@@ -229,24 +245,8 @@ class Aion {
 					this.interface.pause();
 					switch (_.toLower(line)) {
 						case 's' || 'stop':
-                            this.stop();
-							const menu = require(paths.main + '/stopped-menu').bind(this);
-							menu().then(answers => {
-								//							deb(JSON.stringify(answers, null, '  '));
-								switch (answers.choice) {
-									case 'resume':
-										this.start();
-										this.interface.resume();
-										break;
-									case 'quit':
-										this.quit();
-										break;
-									case 'build':
-										_.forEach(answers.builders, this.build.bind(this));
-										this.interface.resume();
-										break;
-								}
-							});
+							this.stop();
+							this.showMenu();
 							break;
 						case 'rs' || 'restart':
 							this.stop().then(() => {
@@ -280,12 +280,33 @@ class Aion {
 				this.interface.on('resume', () => {
 					ready = true;
 				});
+			} else {
+				this.interface.resume();
 			}
-			
-			console.log(' ');
-			console.log('--   AION ready   --'.green.bold);
-			console.log('-- Type in "s" to stop(PAUSE) watching, "h" for the list of all available commands --'.bold.yellow);
 
+			console.log(' ');
+			console.success('--   AION ready   --');
+			console.info('-- Type in "s" to stop(PAUSE) watching, "h" for the list of all available commands --');
+
+		});
+	}
+
+	showMenu() {
+		const menu = require(paths.main + '/stopped-menu').bind(this);
+		menu().then(answers => {
+			switch (answers.choice) {
+				case 'resume':
+					this.start();
+					break;
+				case 'quit':
+					this.quit();
+					break;
+				case 'build':
+					this.build(answers.builders).then(() => {
+						this.showMenu();
+					});
+					break;
+			}
 		});
 	}
 }
