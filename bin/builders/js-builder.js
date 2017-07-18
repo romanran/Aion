@@ -29,8 +29,9 @@ class JsBuilder {
 			});
 		}
 
-		this.q = promise();
-		this.loaded = this.q.resolve;
+		this.q = new Promise((res, rej) => {
+			this.loaded = res;
+		});
 	}
 
 	buildAll() {
@@ -66,11 +67,11 @@ class JsBuilder {
 		let libs_watcher = chokidar.watch(paths.project + '/src/JSLIBS/*.js', watcher_opts);
 		libs_watcher.on('ready', e => {
 			this.watchers.push(libs_watcher);
-			console.log('Watching JSLIBS files...'.bold);
+			console.log('Watching JSLIBS files...');
 		});
 		libs_watcher.on('all', (e, where) => {
-			console.log('  ---- JS build initialized ----  '.bgCyan.black);
-			console.log('Building libraries, it may take a while...'.cyan.bold);
+			console.log('  ---- JS build initialized ----  ');
+			console.log(ch_loading('Building libraries, it may take a while...'));
 			this.handleCompile(paths.project + '/src/JSLIBS/main.js').then(() => {
 				this.watchLibs();
 			});
@@ -87,18 +88,18 @@ class JsBuilder {
 			return 0;
 		}
 		this.ready_i = 0;
-		console.log('Starting JS watcher...'.cyan);
+		console.log(ch_loading('Starting JS watcher...'));
 		let watcher = chokidar.watch([paths.project + '/src/JS/**/*.js'], watcher_opts);
 		watcher.on('ready', e => {
 			this.watchers.push(watcher);
-			console.log('Watching JS files...'.bold);
+			console.log(chalk.bold('Watching JS files...'));
 			this.loaded();
 		});
 
 		watcher.on('all', (e, where) => {
-			console.log('  ---- JS build initialized ----  '.bgCyan.black);
+			console.log('  ---- JS build initialized ----  ');
 
-			console.log(e.yellow.bold + ' in ' + path.basename(where).bold + ', starting build...');
+			console.log(chalk.yellow(e) + ' in ' + chalk.bold(path.basename(where)) + ', starting build...');
 			for (let file of this.files) {
 				this.handleCompile(file).then(this.watch.bind(this));
 			}
@@ -124,7 +125,7 @@ class JsBuilder {
 		let data = '';
 		let filename = file.indexOf('JSLIBS') > -1 ? 'libs' : path.parse(file).name;
 		console.log('Bundling files...');
-		console.time(`${filename}.js`.bold);
+		console.time(`${filename}.js`);
 		let bify = browserify('', {
 			standalone: false,
 			detectGlobals: false,
@@ -168,8 +169,8 @@ class JsBuilder {
 			if (err) {
 				return _promise.reject(err);
 			} else if (end) {
-				console.log(`${name}.js`.white + '✔'.green);
-				console.timeEnd(`${name}.js`.bold);
+				console.log(`${name}.js` + chalk.green('✔'));
+				console.timeEnd(`${name}.js`);
 				return _promise.resolve();
 			}
 		};
@@ -191,8 +192,8 @@ class JsBuilder {
 			if (_.hasIn(err, 'stack')) {
 				err_type = err.stack.substr(0, err.stack.indexOf(': '));
 			}
-			console.log(err_type.red + ' in file ' + filename.bold);
-			console.log('line: ' + (err.loc.line + '').bold, 'pos: ' + (err.loc.column + '').bold);
+			console.error(err_type + ' in file ' + filename);
+			console.log('line: ' + chalk.bold(err.loc.line + ''), 'pos: ' + chalk.bold(err.loc.column + ''));
 			console.log(err.codeFrame);
 			notifier.notify({
 				title: err_type + ' in js build for ' + file + ': ',
@@ -200,9 +201,9 @@ class JsBuilder {
 			});
 
 		} else {
-			console.log('Error: '.bold.red + _.hasIn(err, 'message') ? err.message : err);
+			console.error('Error: ' + _.hasIn(err, 'message') ? err.message : err);
 			if (file.indexOf('lib')) {
-				console.log('Did you remember to do the "npm i" command inside the /src folder?'.bold);	
+				console.info('Did you remember to do the "npm i" command inside the /src folder?');
 			}
 			notifier.notify({
 				message: 'Error: ' + _.hasIn(err, 'message') ? err.message : err,

@@ -1,18 +1,42 @@
-const colors = require('colors');
+const chalk = require('chalk');
 const glob = require('multi-glob').glob;
 const path = require('path');
 const fs = require('fs-extra');
 const util = require('util');
-const lodash = require('lodash');
+const _ = require('lodash');
 const beep = require('beepbeep');
 const chokidar = require('chokidar');
 const notifier = require('node-notifier');
 const asynch = require('async');
 const Spinner = require('cli-spinner').Spinner;
 
+
 const deb = function (s) {
 	console.log.apply(console, arguments);
 };
+
+console.info = function() {
+	arguments = _.map(arguments, arg => {
+		return chalk.bold.cyan(arg);
+	});
+	console.log.apply(console, arguments);
+};
+
+console.error = function() {
+	arguments = _.map(arguments, arg => {
+		return chalk.bold.red(arg);
+	});
+	console.log.apply(console, arguments);
+};
+
+console.success = function() {
+	arguments = _.map(arguments, arg => {
+		return chalk.bold.green(arg);
+	});
+	console.log.apply(console, arguments);
+};
+
+ch_loading = chalk.cyan.bold;
 
 const stopTimer = function (file) {
 	console.timeEnd('exec time for ' + file);
@@ -28,7 +52,7 @@ const handleError = function (err) {
 		err = err.message;
 	}
 	err = _.toString(err);
-	console.log(err.bold.red);
+	console.error(err);
 	return 1;
 };
 
@@ -47,7 +71,7 @@ const cleanRequire = function (path){
 };
 
 module.exports = function () {
-	this.colors = colors;
+	this.chalk = chalk;
 	this.glob = glob;
 	this.path = path;
 	this.fs = fs;
@@ -55,9 +79,8 @@ module.exports = function () {
 	this.beep = beep;
 	this.util = util;
 	this.notifier = notifier;
-	this.stopTimer = stopTimer;
 	this.chokidar = chokidar;
-	this._ = lodash;
+	this._ = _;
 	this.paths = paths;
 	this.deb = deb;
 	this.promise = promise;

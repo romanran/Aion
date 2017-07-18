@@ -15,7 +15,7 @@ class FontBuilder {
 	watchAll() {
 		const watcher = chokidar.watch(paths.project + '/src/FONTS/**/*.*', watcher_opts);
 		watcher.on('ready', () => {
-			console.log('Watching FONT files...'.bold);
+			console.log(chalk.bold('Watching FONT files...'));
 			this.watchers = [watcher];
 			this.loaded();
 		});
@@ -36,7 +36,7 @@ class FontBuilder {
 	}
 
 	move(e, where) {
-		where = where.replace(/\\/g, "/");
+		where = where.replace(/\\/g, '/');
 		let dest = path.parse(where);
 		if (e.indexOf('add') >= 0 || e.indexOf('change') >= 0) {
 			fs.copy(where, _.replace(dest.dir, 'src/FONTS', 'dist/fonts') + '/' + dest.base, {
@@ -49,7 +49,7 @@ class FontBuilder {
 				if (handleError(err)) {
 					return 0;
 				}
-				return console.log(dest.base + ' moved'.green);
+				return console.success(dest.base + ' moved');
 			});
 		}
 	}

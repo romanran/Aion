@@ -8,7 +8,7 @@ require('./base.js')();
 class Aion {
 
 	constructor() {
-		deb('  ______   __                     \r\n \/      \\ |  \\                    \r\n|  $$$$$$\\ \\$$  ______   _______  \r\n| $$__| $$|  \\ \/      \\ |       \\ \r\n| $$    $$| $$|  $$$$$$\\| $$$$$$$\\\r\n| $$$$$$$$| $$| $$  | $$| $$  | $$\r\n| $$  | $$| $$| $$__\/ $$| $$  | $$\r\n| $$  | $$| $$ \\$$    $$| $$  | $$\r\n \\$$   \\$$ \\$$  \\$$$$$$  \\$$   \\$$\r\n                                  \r\n'.green.bold);
+		console.success('  ______   __                     \r\n \/      \\ |  \\                    \r\n|  $$$$$$\\ \\$$  ______   _______  \r\n| $$__| $$|  \\ \/      \\ |       \\ \r\n| $$    $$| $$|  $$$$$$\\| $$$$$$$\\\r\n| $$$$$$$$| $$| $$  | $$| $$  | $$\r\n| $$  | $$| $$| $$__\/ $$| $$  | $$\r\n| $$  | $$| $$ \\$$    $$| $$  | $$\r\n \\$$   \\$$ \\$$  \\$$$$$$  \\$$   \\$$   v1.3.0\r\n                                  \r\n ');
 		this.possible = ['css', 'js', 'img', 'svg', 'font'];
 		this.builders = [];
 		this.builders_q = [];
@@ -20,7 +20,7 @@ class Aion {
 			fs.stat(paths.project + '/src/config.json', (err, stat) => {
 				if (err) {
 					if (err.code === 'ENOENT') {
-						deb('No config file!'.red.bold);
+						console.error('No config file!');
 						const config = require('./config-prompt');
 						return config().then(resolve);
 					}
@@ -31,16 +31,20 @@ class Aion {
 		});
 	}
 
+	init(done) {
+		this.loadConfig().then(e => {
+			this.loadDeps();
+			return done(null);
+		}).catch(err => {
+			return done(err);
+		});
+	}
+
 	serve() {
 		return new Promise((res, rej) => {
 			asynch.series([
 				done => {
-					this.loadConfig().then(e => {
-						this.loadDeps();
-						return done(null);
-					}).catch(err => {
-						return done(err);
-					});
+					this.init(done);
 				},
 				done => {
 					if (this.project.bs) {
@@ -48,7 +52,7 @@ class Aion {
 						const ip = require('ip');
 						const portscanner = require('portscanner');
 
-						let spinner = new Spinner('Starting Browser-sync %s'.cyan.bold);
+						let spinner = new Spinner(ch_loading('Starting Browser-sync %s'));
 						spinner.setSpinnerString(18);
 						spinner.start();
 
@@ -91,7 +95,7 @@ class Aion {
 				if (err) {
 					return handleError(err);
 				}
-				deb('-- AION task runner initiated --'.green.bold);
+				console.success('-- AION task runner initiated --');
 				res();
 			});
 		});
@@ -154,6 +158,7 @@ class Aion {
 	}
 
 	stop() {
+		console.success('--   AION stopped   --');
 		_.forEach(this.builders, builder => {
 			this.stopWatch.call(builder);
 		});
@@ -181,42 +186,45 @@ class Aion {
 
 	build(type) {
 		return new Promise((resolve, reject) => {
-			if (_.indexOf(this.possible, type) >= 0) {
-				let builder = new this.Builders[type](this.project);
-				switch (type) {
-					case 'css':
-						builder.startLess();
-						builder.build().then(resolve);
-						break;
-					case 'js':
-						builder.buildAll().then(resolve);
-						break;
-					case 'img':
-						builder.build().then(resolve);
-						break;
-					case 'svg':
-						builder.buildAll().then(resolve);
-						break;
-					case 'font':
-						builder.build().then(resolve);
-						break;
-				}
-			} else if (_.isEmpty(type) || typeof(type) === 'object') {
-				let array = this.possible;
-				if (typeof(type) === 'object' && type.indexOf('all') < 0) {
-					array = type;
-				}
-				const build = (i) => {
-					setTimeout(() => {
-						if (i === array.length) {
-							return resolve();
+				if (_.indexOf(this.possible, type) >= 0) {
+					let builder = new this.Builders[type](this.project);
+					switch (type) {
+						case 'css':
+							builder.startLess();
+							builder.build().then(resolve);
+							break;
+						case 'js':
+							builder.buildAll().then(resolve);
+							break;
+						case 'img':
+							builder.build().then(resolve);
+							break;
+						case 'svg':
+							builder.buildAll().then(resolve);
+							break;
+						case 'font':
+							builder.build().then(resolve);
+							break;
+					}
+				} else if (_.isEmpty(type) || typeof(type) === 'object') {
+					let array = this.possible;
+					if (typeof(type) === 'object' && !_.isNull(type)) {
+						if (type.indexOf('all') < 0) {
+							array = type;
 						}
-						return this.build(array[i]).then(build.bind(this, ++i));
-					}, 20);
-				};
-				build(0);
+					}
+					const build = (i) => {
+						setTimeout(() => {
+							if (i === array.length) {
+								return resolve();
+							}
+							return this.build(array[i]).then(build.bind(this, ++i));
+						}, 20);
+					};
+					build(0);
+				}
 			}
-		});
+		);
 	}
 
 	watchSelf() {
@@ -277,16 +285,15 @@ class Aion {
 			}
 
 			console.log(' ');
-			console.log('--   AION ready   --'.green.bold);
-			console.log('-- Type in "s" to stop(PAUSE) watching, "h" for the list of all available commands --'.bold.yellow);
+			console.success('--   AION ready   --');
+			console.info('-- Type in "s" to stop(PAUSE) watching, "h" for the list of all available commands --');
 
 		});
 	}
 
-	showMenu(){
+	showMenu() {
 		const menu = require(paths.main + '/stopped-menu').bind(this);
 		menu().then(answers => {
-			//							deb(JSON.stringify(answers, null, '  '));
 			switch (answers.choice) {
 				case 'resume':
 					this.start();
