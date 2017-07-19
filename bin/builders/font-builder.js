@@ -25,13 +25,13 @@ class FontBuilder {
 
 	build() {
 		this.done = promise();
-			glob(paths.project + '/src/FONTS/**/*.*', (err, files) => {
-				this.files_i = 0;
-				this.files_l = files.length;
-				files.map(file => {
-					this.move('add', file);
-				});
+		glob(paths.project + '/src/FONTS/**/*.*', (err, files) => {
+			this.files_i = 0;
+			this.files_l = files.length;
+			files.map(file => {
+				this.move('add', file);
 			});
+		});
 		return this.done.q;
 	}
 
@@ -44,7 +44,9 @@ class FontBuilder {
 			}, err => {
 				this.files_i++;
 				if (this.files_i === this.files_l) {
-					return this.done.resolve();
+					if (!!this.done) {
+						this.done.resolve();
+					}
 				}
 				if (handleError(err)) {
 					return 0;
