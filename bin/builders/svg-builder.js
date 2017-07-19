@@ -96,7 +96,9 @@ class SvgBuilder {
 	minify(dest, err, data) {
 		this.files_i++;
 		if (this.files_i === this.files_l) {
-			this.done.resolve();
+			if (!!this.done) {
+				this.done.resolve();
+			}
 		}
 		if (handleError(err)) return 0;
 		try {

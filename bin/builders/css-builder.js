@@ -6,7 +6,9 @@ try {
 	css_plugs = cleanRequire(`${paths.project}/src/aion-plugins/css/plugins`);
 } catch (e) {
 	console.error('Packages not found, installing...');
-	const {exec} = require('child_process');
+	const {
+		exec
+	} = require('child_process');
 	exec(`cd ${paths.project}/src/ && npm i`, (err, stdout, stderr) => {
 		console.log(stdout);
 		console.log('Please restart the Aion');
@@ -20,7 +22,9 @@ let plugins_list = [
 	new LessPluginCleanCSS({
 		advanced: true
 	}),
-	new LessPluginAutoPrefix({browsers: ['last 2 versions', 'Safari >= 4']}),
+	new LessPluginAutoPrefix({
+		browsers: ['last 2 versions', 'Safari >= 4']
+	}),
 	'less-plugin-glob',
 	'less-plugin-functions'
 ];
@@ -116,7 +120,9 @@ class LessBuilder {
 		const next = () => {
 			this.files_i++;
 			if (this.files_i === this.files_l) {
-				return this.done.resolve();
+				if (!!this.done) {
+					this.done.resolve();
+				}
 			}
 		};
 		less_options.filename = path.resolve(file);
