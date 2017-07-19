@@ -148,7 +148,7 @@ class Aion {
 	}
 
 	start() {
-		this.init().q.then(()=> {
+		this.init().q.then(() => {
 			this.bs = require('browser-sync').create(this.project.name);
 			this.watch();
 			this.watchSelf().q.then(this.serve.bind(this));
@@ -184,45 +184,44 @@ class Aion {
 
 	build(type) {
 		return new Promise((resolve, reject) => {
-				if (_.indexOf(this.possible, type) >= 0) {
-					let builder = new this.Builders[type](this.project);
-					switch (type) {
-						case 'css':
-							builder.startLess();
-							builder.build().then(resolve);
-							break;
-						case 'js':
-							builder.buildAll().then(resolve);
-							break;
-						case 'img':
-							builder.build().then(resolve);
-							break;
-						case 'svg':
-							builder.buildAll().then(resolve);
-							break;
-						case 'font':
-							builder.build().then(resolve);
-							break;
-					}
-				} else if (_.isEmpty(type) || typeof(type) === 'object') {
-					let array = this.possible;
-					if (typeof(type) === 'object' && !_.isNull(type)) {
-						if (type.indexOf('all') < 0) {
-							array = type;
-						}
-					}
-					const build = (i) => {
-						setTimeout(() => {
-							if (i === array.length) {
-								return resolve();
-							}
-							return this.build(array[i]).then(build.bind(this, ++i));
-						}, 20);
-					};
-					build(0);
+			if (_.indexOf(this.possible, type) >= 0) {
+				let builder = new this.Builders[type](this.project);
+				switch (type) {
+					case 'css':
+						builder.startLess();
+						builder.build().then(resolve);
+						break;
+					case 'js':
+						builder.buildAll().then(resolve);
+						break;
+					case 'img':
+						builder.build().then(resolve);
+						break;
+					case 'svg':
+						builder.buildAll().then(resolve);
+						break;
+					case 'font':
+						builder.build().then(resolve);
+						break;
 				}
+			} else if (_.isEmpty(type) || typeof (type) === 'object') {
+				let array = this.possible;
+				if (typeof (type) === 'object' && !_.isNull(type)) {
+					if (type.indexOf('all') < 0) {
+						array = type;
+					}
+				}
+				const build = (i) => {
+					setTimeout(() => {
+						if (i === array.length) {
+							return resolve();
+						}
+						return this.build(array[i]).then(build.bind(this, ++i));
+					}, 20);
+				};
+				build(0);
 			}
-		);
+		});
 	}
 
 	watchSelf() {
@@ -257,11 +256,11 @@ class Aion {
 							break;
 						case 'h' || 'help':
 							let color = 'cyan';
-							console.log('type in the ' + 'string' [color] + ' and hit enter:');
-							console.log('s' [color] + ' or ' + 'stop' [color] + ' to stop(PAUSE) the builders from watching changes in files and show Aion menu');
-							console.log('rs' [color] + ' or ' + 'restart' [color] + ' to restart builders');
-							console.log('q' [color] + ' or ' + 'quit' [color] + ' to shutdown watchers and exit the process');
-							console.log('h' [color] + ' or ' + 'help' [color] + ' for list of command');
+							console.log('type in the ' + ch_loading('string') + ' and hit enter:');
+							console.log(ch_loading('s') + ' or ' + ch_loading('stop') + ' to stop(PAUSE) the builders from watching changes in files and show Aion menu');
+							console.log(ch_loading('rs') + ' or ' + ch_loading('restart') + ' to restart builders');
+							console.log(ch_loading('q') + ' or ' + ch_loading('quit') + ' to shutdown watchers and exit the process');
+							console.log(ch_loading('h') + ' or ' + ch_loading('help') + ' for list of command');
 							this.interface.resume();
 							break;
 						default:
