@@ -88,16 +88,22 @@ class LessBuilder {
 			this.watchers = [watcher];
 			this.loaded();
 		});
-		watcher.on('all', this.build.bind(this));
+		watcher.on('all', (e, file) => {
+			watcher.close();
+			this.watchers.pop();
+			this.build(e, file).then(e => {
+				this.watchMain();
+			});
+		});
 	}
 
 	build(e, where) {
+		console.log(chalk.bgHex(colors.css).black('  ---- CSS build initialized ----   '));
 		this.done = promise();
 		if (where) {
 			where = path.parse(where.replace(/\\/g, '/')).name;
 			console.info(chalk.bold.white(e.toUpperCase()) + ' in file ' + chalk.bold.white(where));
 		}
-		console.log(chalk.bgHex(colors.css).black('  ---- CSS build initialized ----   '));
 		glob(paths.project + '/src/LESS/*.less', (err, files) => {
 			this.files_i = 0;
 			this.files_l = files.length;
@@ -117,11 +123,15 @@ class LessBuilder {
 		if (handleError(err)) {
 			return 0;
 		}
-		const next = () => {
+		const fileFinished = function() {
 			this.files_i++;
+
 			if (this.files_i === this.files_l) {
 				if (!!this.done) {
 					this.done.resolve();
+				}
+				if (!!this.bs) {
+					this.bs.reload(paths.project + '/dist/css/*.css');
 				}
 			}
 		};
@@ -130,9 +140,9 @@ class LessBuilder {
 			.render(data, less_options)
 			.then(this.postProcess.bind(this, dest_file))
 			.then(this.save.bind(this, dest_file))
-			.then(next.bind(this))
+			.then(fileFinished.bind(this))
 			.catch(err => {
-				next();
+				fileFinished();
 				return this.lessError(err, dest_file);
 			});
 	}
@@ -154,7 +164,6 @@ class LessBuilder {
 	}
 
 	save(dest_file, output) {
-		//check files hash
 		const q = promise();
 		output.css += '/*# sourceMappingURL=' + dest_file + '.css.map */';
 
@@ -171,11 +180,6 @@ class LessBuilder {
 			console.log(dest_file + chalk.green(' ✔'));
 			const end = Date.now() - this.timers[dest_file];
 			console.info(`Execution time for ${chalk.white.bold(dest_file)}: ${chalk.white(end)}ms`);
-			if (!_.isUndefined(this.bs)) {
-				this.bs.stream({
-					match: '**/*.css'
-				});
-			}
 
 			if (_.hasIn(output, 'messages[0].text')) {
 				console.success(chalk.italic(output.messages[0].text));

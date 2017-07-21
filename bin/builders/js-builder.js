@@ -70,9 +70,13 @@ class JsBuilder {
 			console.log('Watching JSLIBS files...');
 		});
 		libs_watcher.on('all', (e, where) => {
+			console.log(chalk.bgHex(colors.js).black('  ---- JS build initialized ----  '));
 			console.log(ch_loading('Building libraries, it may take a while...'));
 			this.handleCompile(paths.project + '/src/JSLIBS/main.js').then(() => {
 				this.watchLibs();
+				if (!!this.bs) {
+					this.bs.reload();
+				}
 			});
 			libs_watcher.close();
 		});
@@ -95,18 +99,28 @@ class JsBuilder {
 			this.loaded();
 		});
 
+		let promises = [];
+		for (let file of this.files) {
+		}
+		promises.push(this.handleCompile(paths.project + '/src/JSLIBS/main.js'));
 		watcher.on('all', (e, where) => {
+			console.log(chalk.bgHex(colors.js).black('  ---- JS build initialized ----  '));
 			console.log(chalk.yellow(e) + ' in ' + chalk.bold(path.basename(where)) + ', starting build...');
 			for (let file of this.files) {
-				this.handleCompile(file).then(this.watch.bind(this));
+				promises.push(this.handleCompile(file));
 			}
+			Promise.all(promises).then(e => {
+				this.watch();
+				if (!!this.bs) {
+					this.bs.reload();
+				}
+			});
 			watcher.close();
 			this.watchers.pop();
 		});
 	}
 
 	handleCompile(file) {
-		console.log(chalk.bgHex(colors.js).black('  ---- JS build initialized ----  '));
 		return new Promise((resolve, reject) => {
 			this.compile(file)
 				.then(this.saveData.bind(this))
@@ -122,7 +136,7 @@ class JsBuilder {
 		const q = promise();
 		let data = '';
 		let filename = file.indexOf('JSLIBS') > -1 ? 'libs' : path.parse(file).name;
-		console.log('Bundling files...');
+		console.log(`Bundling required files for ${chalk.bold.yellowBright(filename)}...`);
 		console.time(`${filename}.js`);
 		let bify = browserify('', {
 			standalone: false,
@@ -156,9 +170,9 @@ class JsBuilder {
 
 	saveData(result) {
 		const _promise = promise();
-		console.log('Minifying and saving...');
 		const name = result.filename;
 		let data = result.data;
+		console.log(`Minifying and saving ${chalk.bold.yellowBright(name)}...`);
 		const data_min = UglifyJS.minify(_.toString(data), {
 			fromString: true
 		});
