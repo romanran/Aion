@@ -10,6 +10,13 @@ const notifier = require('node-notifier');
 const asynch = require('async');
 const Spinner = require('cli-spinner').Spinner;
 
+const colors =  {
+	css: '#4ec6ff',
+	js: '#F39C11',
+	img: '#00E11A',
+	svg: '#564bff',
+	font: '#ff4b64'
+};
 
 const deb = function (s) {
 	console.log.apply(console, arguments);
@@ -82,6 +89,7 @@ module.exports = function () {
 	this.chokidar = chokidar;
 	this._ = _;
 	this.paths = paths;
+	this.colors = colors;
 	this.deb = deb;
 	this.promise = promise;
 	this.handleError = handleError;

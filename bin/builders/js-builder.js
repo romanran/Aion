@@ -70,7 +70,6 @@ class JsBuilder {
 			console.log('Watching JSLIBS files...');
 		});
 		libs_watcher.on('all', (e, where) => {
-			console.log('  ---- JS build initialized ----  ');
 			console.log(ch_loading('Building libraries, it may take a while...'));
 			this.handleCompile(paths.project + '/src/JSLIBS/main.js').then(() => {
 				this.watchLibs();
@@ -97,8 +96,6 @@ class JsBuilder {
 		});
 
 		watcher.on('all', (e, where) => {
-			console.log('  ---- JS build initialized ----  ');
-
 			console.log(chalk.yellow(e) + ' in ' + chalk.bold(path.basename(where)) + ', starting build...');
 			for (let file of this.files) {
 				this.handleCompile(file).then(this.watch.bind(this));
@@ -109,6 +106,7 @@ class JsBuilder {
 	}
 
 	handleCompile(file) {
+		console.log(chalk.bgHex(colors.js).black('  ---- JS build initialized ----  '));
 		return new Promise((resolve, reject) => {
 			this.compile(file)
 				.then(this.saveData.bind(this))
