@@ -304,5 +304,6 @@ class Aion {
 			}
 		});
 	}
+	
 }
 module.exports = Aion;

@@ -64,7 +64,7 @@ class SvgBuilder {
 			where = where.replace(/\\/g, '/');
 			console.log(chalk.bold(e.toUpperCase()) + ' in file ' + chalk.bold(where));
 		}
-		console.log('  ---- SVG SYMBOLS build initialized ----   ');
+		console.log(chalk.bgHex(colors.svg).black('  ---- SVG SYMBOLS build initialized ----   '));
 
 		let sprites = svgstore(this.opts);
 		glob(paths.project + '/src/SVG/symbols/*.svg', (er, files) => {

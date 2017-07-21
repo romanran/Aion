@@ -23,7 +23,7 @@ class ImgBuilder{
 	
 	build(e, where){
 		return new Promise((resolve, reject) => {
-			console.log('  ---- IMAGES build initialized ----   ');
+			console.log(chalk.bgHex(colors.img).black('  ---- IMAGES build initialized ----   '));
 			imagemin([paths.project + '/src/IMG/*.{jpg,jpeg,png}'], '../dist/images', {
 				plugins: [
 					imageminMozjpeg(),

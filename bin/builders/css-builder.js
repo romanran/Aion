@@ -97,7 +97,7 @@ class LessBuilder {
 			where = path.parse(where.replace(/\\/g, '/')).name;
 			console.info(chalk.bold.white(e.toUpperCase()) + ' in file ' + chalk.bold.white(where));
 		}
-		console.log('  ---- POSTCSS/LESS build initialized ----   ');
+		console.log(chalk.bgHex(colors.css).black('  ---- CSS build initialized ----   '));
 		glob(paths.project + '/src/LESS/*.less', (err, files) => {
 			this.files_i = 0;
 			this.files_l = files.length;
