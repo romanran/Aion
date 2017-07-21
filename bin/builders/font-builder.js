@@ -2,7 +2,8 @@ const watcher_opts = require(paths.configs + '/watcher');
 
 class FontBuilder {
 
-	constructor() {
+	constructor(project) {
+		this.project = project;
 		this.q = new Promise((res, rej) => {
 			this.loaded = res;
 		});
@@ -13,6 +14,9 @@ class FontBuilder {
 	}
 
 	watchAll() {
+		if (this.project.bs) {
+			this.bs = require('browser-sync').get(this.project.name);
+		}
 		const watcher = chokidar.watch(paths.project + '/src/FONTS/**/*.*', watcher_opts);
 		watcher.on('ready', () => {
 			console.log(chalk.bold('Watching FONT files...'));

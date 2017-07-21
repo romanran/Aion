@@ -5,13 +5,17 @@ const imageminPngquant = require('imagemin-pngquant');
 
 class ImgBuilder{
 	
-	constructor(){
+	constructor(project){
+		this.project = project;
 		this.q = new Promise((res,rej) => {
             this.loaded = res;
         });
 	}
 	
 	watchAll(){
+		if (this.project.bs) {
+			this.bs = require('browser-sync').get(this.project.name);
+		}
 		let watcher = chokidar.watch( paths.project + '/src/IMG/*.{jpg,jpeg,png}', watcher_opts);
 		watcher.on('ready', e => {
             console.log(chalk.bold('Watching IMAGE files...'));
@@ -40,6 +44,9 @@ class ImgBuilder{
 					total += saved;
 				}
 				console.log('  Sum of space saved: ' + chalk.bold.green(total + 'kB'));
+				if (!!this.bs) {
+					this.bs.reload(paths.project + '/dist/img/*.*');
+				}
 				resolve();
 			});
 		});
