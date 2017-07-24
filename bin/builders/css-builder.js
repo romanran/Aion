@@ -142,7 +142,7 @@ class LessBuilder {
 			.then(this.save.bind(this, dest_file))
 			.then(fileFinished.bind(this))
 			.catch(err => {
-				fileFinished();
+				fileFinished.call(this);
 				return this.lessError(err, dest_file);
 			});
 	}
