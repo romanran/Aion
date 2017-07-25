@@ -18,7 +18,6 @@
     "build:svg": "node bin/operators/build --build svg",
     "build:img": "node bin/operators/build --build img",
     "build:fonts": "node bin/operators/build --build font",
-    "jshint": "jshint --reporter=node_modules/jshint-stylish",
     "check": "jshint --reporter=node_modules/jshint-stylish ./bin/. || ECHO"
   },
   "repository": {

@@ -100,8 +100,6 @@ class JsBuilder {
 		});
 
 		let promises = [];
-		for (let file of this.files) {
-		}
 		promises.push(this.handleCompile(paths.project + '/src/JSLIBS/main.js'));
 		watcher.on('all', (e, where) => {
 			console.log(chalk.bgHex(colors.js).black('  ---- JS build initialized ----  '));

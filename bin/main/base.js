@@ -23,24 +23,24 @@ const deb = function (s) {
 };
 
 console.info = function() {
-	arguments = _.map(arguments, arg => {
+	const args = _.map(arguments, arg => {
 		return chalk.bold.cyan(arg);
 	});
-	console.log.apply(console, arguments);
+	console.log.apply(console, args);
 };
 
 console.error = function() {
-	arguments = _.map(arguments, arg => {
+	const args = _.map(arguments, arg => {
 		return chalk.bold.red(arg);
 	});
-	console.log.apply(console, arguments);
+	console.log.apply(console, args);
 };
 
 console.success = function() {
-	arguments = _.map(arguments, arg => {
+	const args = _.map(arguments, arg => {
 		return chalk.bold.green(arg);
 	});
-	console.log.apply(console, arguments);
+	console.log.apply(console, args);
 };
 
 ch_loading = chalk.cyan.bold;
