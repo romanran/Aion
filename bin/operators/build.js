@@ -2,12 +2,19 @@ require('../main/base.js')();
 const nodeFlag = require('node-flag');
 const Aion = require(paths.main + '/Aion');
 
-let aion = new Aion();
+let config_path = nodeFlag.get('config');
+const params = {};
+if (config_path) {
+	params.config = config_path;
+}
+
+let aion = new Aion(params);
 let type = nodeFlag.get('build');
 
 aion.init(function(err){
 	if (err) {
-		console.log(err);
+		handleError(err);
+	} else {
+		this.build(type);
 	}
-	this.build(type);
 }.bind(aion));

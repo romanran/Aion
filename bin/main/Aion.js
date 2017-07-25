@@ -3,94 +3,126 @@
  run all of the builds in separate window (fork)
  */
 
-require('./base.js')();
-
 class Aion {
 
-	constructor() {
+	constructor(opts) {
 		const pck = require('../../package.json');
 		console.success('  ______   __                     \r\n \/      \\ |  \\                    \r\n|  $$$$$$\\ \\$$  ______   _______  \r\n| $$__| $$|  \\ \/      \\ |       \\ \r\n| $$    $$| $$|  $$$$$$\\| $$$$$$$\\\r\n| $$$$$$$$| $$| $$  | $$| $$  | $$\r\n| $$  | $$| $$| $$__\/ $$| $$  | $$\r\n| $$  | $$| $$ \\$$    $$| $$  | $$\r\n \\$$   \\$$ \\$$  \\$$$$$$  \\$$   \\$$   v' + pck.version + '\r\n                                  \r\n ');
 		this.possible = ['css', 'js', 'img', 'svg', 'font'];
 		this.builders = [];
 		this.builders_q = [];
 		this.Builders = {};
+		this.opts = opts;
 	}
 
-	static checkConfig() {
-		return new Promise((resolve, reject) => {
-			fs.stat(paths.project + '/src/config.json', (err, stat) => {
-				if (err) {
-					if (err.code === 'ENOENT') {
-						console.error('No config file!');
-						const config = require('./config-prompt');
-						return config().then(resolve);
-					}
-					return reject(err);
-				}
-				return resolve();
-			});
+	static checkFile(path) {
+		const q = promise();
+		fs.stat(path, (err, stat) => {
+			if (err) {
+				return q.resolve(err);
+			}
+			return q.resolve();
 		});
+		return q.q;
+	}
+
+	checkConfig() {
+		const q = promise();
+		Aion.checkFile(paths.project + '/src/config.json').then(err => {
+			if (err) {
+				if (err.code === 'ENOENT') {
+					console.error('No config file!');
+					const config = require('./config-prompt');
+					return config().then(q.resolve);
+				}
+				return q.reject(err);
+			}
+			return q.resolve();
+		});
+		return q.q;
 	}
 
 	init(done) {
 		const q = promise();
-		this.loadConfig().then(e => {
-			this.loadDeps();
+		const init_tasks = [
+			end => {
+				if (_.hasIn(this.opts, 'config')) {
+					Aion.checkFile(this.opts.config).then(() =>{
+						let paths = require(path.resolve(this.opts.config));
+						_.forEach(paths, (o, i) => {
+							global.paths[i] = path.resolve(o);
+						});
+						return end();
+					}).catch(end);
+				} else {
+					end();
+				}
+			}, end => {
+				this.loadProjectConfig().then(e => {
+					this.loadDeps();
+					end(null);
+				}).catch(end);
+			}
+		];
+
+		asynch.series(init_tasks, (err, data) => {
+			if (err) {
+				return !!done ? done(err) : q.reject(err);
+			}
 			return !!done ? done(null) : q.resolve();
-		}).catch(err => {
-			return !!done ? done(err) : q.reject(err);
 		});
-		return q;
+		return q.q;
 	}
 
 	serve() {
-		return new Promise((res, rej) => {
-			asynch.series([
-				done => {
-					if (this.project.bs) {
-						const ip = require('ip');
-						const portscanner = require('portscanner');
+		const tasks = [
+			done => {
+				if (this.project.bs) {
+					const ip = require('ip');
+					const portscanner = require('portscanner');
 
-						let spinner = new Spinner(ch_loading('Starting Browser-sync %s'));
-						spinner.setSpinnerString(18);
-						spinner.start();
+					let spinner = new Spinner(ch_loading('Starting Browser-sync %s'));
+					spinner.setSpinnerString(18);
+					spinner.start();
 
-						let this_ip = ip.address();
-						portscanner.findAPortNotInUse(3000, 3100, this_ip, (err, port) => {
-							this.bs_conf.proxy = {
-								target: this.project.proxy,
-								ws: true
-							};
-							this.bs_conf.host = this_ip;
-							this.bs_conf.port = port;
-							this.bs_process = this.bs.init(this.bs_conf);
-							this.bs_process.emitter.on('init', () => {
-								deb('');
-								spinner.stop(true);
-								done();
-							});
+					let this_ip = ip.address();
+					portscanner.findAPortNotInUse(3000, 3100, this_ip, (err, port) => {
+						this.bs_conf.proxy = {
+							target: this.project.proxy,
+							ws: true
+						};
+						this.bs_conf.host = this_ip;
+						this.bs_conf.port = port;
+						this.bs_process = this.bs.init(this.bs_conf);
+						this.bs_process.emitter.on('init', () => {
+							deb('');
+							spinner.stop(true);
+							done();
 						});
-					} else {
-						done();
-					}
-				},
-				done => {
-					if (this.project.server) {
-						const exec = require('child_process').exec;
-						let child = exec('npm start --color --ansi', {
-							cwd: this.project.path,
-							maxBuffer: 1024 * 2048,
-							stdio: 'inherit'
-						});
-						child.stdout.on('data', function (data) {
-							console.log(data);
-						});
-						done();
-					} else {
-						done();
-					}
+					});
+				} else {
+					done();
 				}
-			], (err, data) => {
+			},
+			done => {
+				if (this.project.server) {
+					const exec = require('child_process').exec;
+					let child = exec('npm start --color --ansi', {
+						cwd: this.project.path,
+						maxBuffer: 1024 * 2048,
+						stdio: 'inherit'
+					});
+					child.stdout.on('data', function (data) {
+						console.log(data);
+					});
+					done();
+				} else {
+					done();
+				}
+			}
+		];
+		return new Promise((res, rej) => {
+			asynch.series(tasks, (err, data) => {
 				if (err) {
 					return handleError(err);
 				}
@@ -100,9 +132,9 @@ class Aion {
 	}
 
 
-	loadConfig() {
+	loadProjectConfig() {
 		return new Promise((resolve, reject) => {
-			Aion.checkConfig().then(() => {
+			this.checkConfig().then(() => {
 				this.project = cleanRequire(paths.project + '/src/config.json');
 				this.bs_conf = cleanRequire(paths.configs + '/bs-config.js');
 				return resolve();
@@ -148,8 +180,8 @@ class Aion {
 	}
 
 	start() {
-		this.init().q.then(() => {
-			this.bs = cleanRequire('browser-sync').create(this.project.name);
+		this.init().then(() => {
+			this.bs = require('browser-sync').create(this.project.name);
 			this.watch();
 			this.watchSelf().q.then(this.serve.bind(this));
 		}).catch(handleError);
