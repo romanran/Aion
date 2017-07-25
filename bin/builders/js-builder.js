@@ -11,7 +11,8 @@ class JsBuilder {
 		this.project = project;
 		this.files = [];
 		this.watchers = [];
-		this.files = [];
+		this.no_libs = false;
+		this.watch_i = 0;
 
 		if (!_.hasIn(this.project, 'jsFiles')) {
 			this.project.jsFiles = ['main/main', 'wp-admin/wp-admin'];
@@ -29,9 +30,8 @@ class JsBuilder {
 			});
 		}
 
-		this.q = new Promise((res, rej) => {
-			this.loaded = res;
-		});
+		this.q = promise();
+		this.loaded = this.q.resolve;
 	}
 
 	buildAll() {
@@ -47,23 +47,28 @@ class JsBuilder {
 
 	watchAll() {
 		console.log('Caching project JS files...');
-		this.ready_i = 0;
+		const file = paths.project + '/src/JSLIBS/main.js';
+		fs.pathExists(file, this.watchLibs.bind(this, file));
+		let promises = [];
 		const fileCheck = function (file, err, exists) {
 			if (!exists) {
 				_.pull(this.files, file);
 				return 1;
 			}
-			this.compile(file)
-				.catch(handleError)
-				.then(this.watch.bind(this));
+			promises.push(this.compile(file));
 		};
+
 		for (let file of this.files) {
 			fs.pathExists(file, fileCheck.bind(this, file));
 		}
-		this.watchLibs();
+		Promise.all(promises).then(this.watch.bind(this));
 	}
 
-	watchLibs() {
+	watchLibs(file, err, exists) {
+		if (!exists) {
+			this.no_libs = true;
+			return 0;	
+		}
 		let libs_watcher = chokidar.watch(paths.project + '/src/JSLIBS/*.js', watcher_opts);
 		libs_watcher.on('ready', e => {
 			this.watchers.push(libs_watcher);
@@ -72,7 +77,7 @@ class JsBuilder {
 		libs_watcher.on('all', (e, where) => {
 			console.log(chalk.bgHex(colors.js).black('  ---- JS build initialized ----  '));
 			console.log(ch_loading('Building libraries, it may take a while...'));
-			this.handleCompile(paths.project + '/src/JSLIBS/main.js').then(() => {
+			this.handleCompile(file).then(() => {
 				this.watchLibs();
 				if (!!this.bs) {
 					this.bs.reload();
@@ -83,26 +88,21 @@ class JsBuilder {
 	}
 
 	watch() {
-		this.ready_i++;
 		if (this.project.bs && !this.bs) {
 			this.bs = require('browser-sync').get(this.project.name);
 		}
-		if (this.ready_i !== this.files.length) {
-			return 0;
-		}
-		this.ready_i = 0;
-		console.log(ch_loading('Starting JS watcher...'));
 		let watcher = chokidar.watch([paths.project + '/src/JS/**/*.js'], watcher_opts);
 		watcher.on('ready', e => {
 			this.watchers.push(watcher);
 			console.log(chalk.bold('Watching JS files...'));
-			this.loaded();
+			if (!this.watch_i) {
+				this.loaded();
+			}
+			this.watch_i++;
 		});
 
 		let promises = [];
-		for (let file of this.files) {
-		}
-		promises.push(this.handleCompile(paths.project + '/src/JSLIBS/main.js'));
+		
 		watcher.on('all', (e, where) => {
 			console.log(chalk.bgHex(colors.js).black('  ---- JS build initialized ----  '));
 			console.log(chalk.yellow(e) + ' in ' + chalk.bold(path.basename(where)) + ', starting build...');
@@ -110,10 +110,10 @@ class JsBuilder {
 				promises.push(this.handleCompile(file));
 			}
 			Promise.all(promises).then(e => {
-				this.watch();
 				if (!!this.bs) {
 					this.bs.reload();
 				}
+				this.watch();
 			});
 			watcher.close();
 			this.watchers.pop();
@@ -129,10 +129,10 @@ class JsBuilder {
 					resolve();
 				})
 				.then(resolve);
-		});
+		}); 
 	}
 
-	compile(file) {
+	compile(file) {  
 		const q = promise();
 		let data = '';
 		let filename = file.indexOf('JSLIBS') > -1 ? 'libs' : path.parse(file).name;
@@ -152,7 +152,7 @@ class JsBuilder {
 
 		const bundler = bify.bundle().on('error', err => {
 			this.handleBrowserifyError(err, file);
-			q.reject();
+			q.resolve();
 		});
 
 		bundler.on('data', (chunk) => {

@@ -92,6 +92,9 @@ class LessBuilder {
 			watcher.close();
 			this.watchers.pop();
 			this.build(e, file).then(e => {
+				if (!!this.bs) {
+					this.bs.reload(paths.project + '/dist/css/*.css');
+				}
 				this.watchMain();
 			});
 		});
@@ -117,32 +120,28 @@ class LessBuilder {
 		});
 		return this.done.q;
 	}
+	fileFinished() {
+		this.files_i++;
+		if (this.files_i === this.files_l) {
+			if (!!this.done) {
+				this.done.resolve();
+			}
+		}
+	}
 
 	//compilation function
 	dataReady(file, dest_file, err, data) {
 		if (handleError(err)) {
 			return 0;
 		}
-		const fileFinished = function() {
-			this.files_i++;
-
-			if (this.files_i === this.files_l) {
-				if (!!this.done) {
-					this.done.resolve();
-				}
-				if (!!this.bs) {
-					this.bs.reload(paths.project + '/dist/css/*.css');
-				}
-			}
-		};
 		less_options.filename = path.resolve(file);
 		this.compiler
 			.render(data, less_options)
-			.then(this.postProcess.bind(this, dest_file))
-			.then(this.save.bind(this, dest_file))
-			.then(fileFinished.bind(this))
+			.then(this.postProcess.bind(this, dest_file)) 
+			.then(this.save.bind(this, dest_file)) 
+			.then(this.fileFinished.bind(this)) 
 			.catch(err => {
-				fileFinished.call(this);
+				this.fileFinished();
 				return this.lessError(err, dest_file);
 			});
 	}
@@ -166,7 +165,6 @@ class LessBuilder {
 	save(dest_file, output) {
 		const q = promise();
 		output.css += '/*# sourceMappingURL=' + dest_file + '.css.map */';
-
 		if (output.map) {
 			fs.writeFileSync(paths.project + '/dist/css/' + dest_file + '.css.map', output.map);
 		}
@@ -188,7 +186,7 @@ class LessBuilder {
 			console.log(' ');
 			q.resolve();
 		});
-		return q;
+		return q.q;
 	}
 
 	lessError(err, dest_file) {
