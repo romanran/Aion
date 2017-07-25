@@ -149,10 +149,10 @@ class Aion {
 
 	start() {
 		this.init().q.then(() => {
-			this.bs = require('browser-sync').create(this.project.name);
+			this.bs = cleanRequire('browser-sync').create(this.project.name);
 			this.watch();
 			this.watchSelf().q.then(this.serve.bind(this));
-		}).catch(console.error);
+		}).catch(handleError);
 	}
 
 	stop() {
@@ -164,6 +164,7 @@ class Aion {
 		return new Promise((res, rej) => {
 			if (this.project.bs && _.hasIn(this, 'bs.exit')) {
 				this.bs.exit();
+				this.bs = undefined;
 			}
 			if (this.project.server) {
 				res();
@@ -304,6 +305,6 @@ class Aion {
 			}
 		});
 	}
-	
+
 }
 module.exports = Aion;
