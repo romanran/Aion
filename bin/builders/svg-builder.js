@@ -64,7 +64,7 @@ class SvgBuilder {
 	}
 
 	buildSymbols(e, where) {
-		console.log(chalk.bgHex(colors.svg).black('  ---- SVG SYMBOLS build initialized ----   '));
+		console.log('  ---- SVG SYMBOLS build initialized ----   ');
 		if (where) {
 			where = where.replace(/\\/g, '/');
 			console.log(chalk.bold(e.toUpperCase()) + ' in file ' + chalk.bold(where));

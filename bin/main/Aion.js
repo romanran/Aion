@@ -57,6 +57,12 @@ class Aion {
 				} else {
 					end();
 				}
+			},
+			end => {
+				if (_.hasIn(this.opts, 'project')) {
+					global.paths.project = path.resolve(this.opts.project);
+				}
+				end();
 			}, end => {
 				this.loadProjectConfig().then(e => {
 					this.loadDeps();
@@ -93,8 +99,8 @@ class Aion {
 						};
 						this.bs_conf.host = this_ip;
 						this.bs_conf.port = port;
-						this.bs_process = this.bs.init(this.bs_conf);
-						this.bs_process.emitter.on('init', () => {
+						this.bs.init(this.bs_conf);
+						this.bs.emitter.on('init', () => {
 							deb('');
 							spinner.stop(true);
 							done();

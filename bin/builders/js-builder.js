@@ -17,19 +17,13 @@ class JsBuilder {
 		if (!_.hasIn(this.project, 'jsFiles')) {
 			this.project.jsFiles = ['main/main', 'wp-admin/wp-admin'];
 		}
-
-		for (let file of this.project.jsFiles) {
-			file = path.parse(file);
-			file = file.dir + '/' + file.name;
-			file = `${paths.project}/src/JS/${file}.js`;
-			this.files.push(file);
-			fs.stat(file, (err, stat) => {
-				if (err) {
-					_.pull(this.files, file);
-				}
-			});
-		}
-
+		for (let file of this.project.jsFiles) { 
+			file = path.parse(file); 
+			file = file.dir + '/' + file.name; 
+			file = `${paths.project}/src/JS/${file}.js`; 
+			this.files.push(file); 
+		} 
+		
 		this.q = promise();
 		this.loaded = this.q.resolve;
 	}
@@ -75,7 +69,7 @@ class JsBuilder {
 			console.log('Watching JSLIBS files...');
 		});
 		libs_watcher.on('all', (e, where) => {
-			console.log(chalk.bgHex(colors.js).black('  ---- JS build initialized ----  '));
+			console.log('  ---- JS build initialized ----  ');
 			console.log(ch_loading('Building libraries, it may take a while...'));
 			this.handleCompile(file).then(() => {
 				this.watchLibs();
@@ -104,7 +98,7 @@ class JsBuilder {
 		let promises = [];
 		
 		watcher.on('all', (e, where) => {
-			console.log(chalk.bgHex(colors.js).black('  ---- JS build initialized ----  '));
+			console.log('  ---- JS build initialized ----  ');
 			console.log(chalk.yellow(e) + ' in ' + chalk.bold(path.basename(where)) + ', starting build...');
 			for (let file of this.files) {
 				promises.push(this.handleCompile(file));
@@ -122,13 +116,18 @@ class JsBuilder {
 
 	handleCompile(file) {
 		return new Promise((resolve, reject) => {
-			this.compile(file)
-				.then(this.saveData.bind(this))
-				.catch(err => {
-					handleError(err);
-					resolve();
-				})
-				.then(resolve);
+			fs.pathExists(file, (err, exists) => {
+				if (!exists) {
+					return resolve();
+				}
+				this.compile(file)
+					.then(this.saveData.bind(this))
+					.catch(err => {
+						handleError(err);
+						resolve();
+					})
+					.then(resolve);
+			});
 		}); 
 	}
 

@@ -101,7 +101,7 @@ class LessBuilder {
 	}
 
 	build(e, where) {
-		console.log(chalk.bgHex(colors.css).black('  ---- CSS build initialized ----   '));
+		console.log('  ---- CSS build initialized ----   ');
 		this.done = promise();
 		if (where) {
 			where = path.parse(where.replace(/\\/g, '/')).name;
@@ -150,6 +150,9 @@ class LessBuilder {
 		return new Promise((resolve, reject) => {
 			if (err) {
 				return reject(err, dest_file);
+			}
+			if (dest_file.indexOf('lib') >= 0) {
+				return resolve(output);
 			}
 			const postcss_opts = {
 				map: {

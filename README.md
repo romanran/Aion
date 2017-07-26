@@ -24,8 +24,12 @@ Aion is a Hellenistic deity associated with time, the orb or circle encompassing
 
 ### Running a build ###
 npm run build - to build all
-npm run build:builder_type - in place of builder_type type in css, js etc.
+node bin/operators/build:builder_type - in place of builder_type type in css, js etc.
 to load different config, add --config "path/to/config.json" flag in command. JSON has to correspond to values in object inside bin/config/paths.js e.g. :
 {
 	"project": "../../some_project"
 }
+
+or
+
+node bin/operators/build --project "path/to/project"
