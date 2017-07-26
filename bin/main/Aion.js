@@ -1,106 +1,146 @@
 /* TODO: 
- - return a promise on all of the builders, run all one after another OR
-   run all of the builds in separate window (fork)
-*/
-
-require('./base.js')();
+ -* DONE return a promise on all of the builders, run all one after another OR
+ run all of the builds in separate window (fork)
+ */
 
 class Aion {
 
-	constructor() {
-		deb('  ______   __                     \r\n \/      \\ |  \\                    \r\n|  $$$$$$\\ \\$$  ______   _______  \r\n| $$__| $$|  \\ \/      \\ |       \\ \r\n| $$    $$| $$|  $$$$$$\\| $$$$$$$\\\r\n| $$$$$$$$| $$| $$  | $$| $$  | $$\r\n| $$  | $$| $$| $$__\/ $$| $$  | $$\r\n| $$  | $$| $$ \\$$    $$| $$  | $$\r\n \\$$   \\$$ \\$$  \\$$$$$$  \\$$   \\$$\r\n                                  \r\n'.green.bold);
+	constructor(opts) {
+		const pck = require('../../package.json');
+		console.success('  ______   __                     \r\n \/      \\ |  \\                    \r\n|  $$$$$$\\ \\$$  ______   _______  \r\n| $$__| $$|  \\ \/      \\ |       \\ \r\n| $$    $$| $$|  $$$$$$\\| $$$$$$$\\\r\n| $$$$$$$$| $$| $$  | $$| $$  | $$\r\n| $$  | $$| $$| $$__\/ $$| $$  | $$\r\n| $$  | $$| $$ \\$$    $$| $$  | $$\r\n \\$$   \\$$ \\$$  \\$$$$$$  \\$$   \\$$   v' + pck.version + '\r\n                                  \r\n ');
 		this.possible = ['css', 'js', 'img', 'svg', 'font'];
 		this.builders = [];
 		this.builders_q = [];
 		this.Builders = {};
+		this.opts = opts;
 	}
 
-	static checkConfig() {
-		return new Promise((resolve, reject) => {
-			fs.stat(paths.project + '/src/config.json', (err, stat) => {
-				if (err) {
-					if (err.code == 'ENOENT') {
-						deb('No config file!'.red.bold);
-						const config = require('./config-prompt');
-						return config().then(resolve);
-					}
-					return reject(err);
-				}
-				return resolve();
-			});
+	static checkFile(path) {
+		const q = promise();
+		fs.stat(path, (err, stat) => {
+			if (err) {
+				return q.resolve(err);
+			}
+			return q.resolve();
 		});
+		return q.q;
+	}
+
+	checkConfig() {
+		const q = promise();
+		Aion.checkFile(paths.project + '/src/config.json').then(err => {
+			if (err) {
+				if (err.code === 'ENOENT') {
+					console.error('No config file!');
+					const config = require('./config-prompt');
+					return config().then(q.resolve);
+				}
+				return q.reject(err);
+			}
+			return q.resolve();
+		});
+		return q.q;
+	}
+
+	init(done) {
+		const q = promise();
+		const init_tasks = [
+			end => {
+				if (_.hasIn(this.opts, 'config')) {
+					Aion.checkFile(this.opts.config).then(() =>{
+						let paths = require(path.resolve(this.opts.config));
+						_.forEach(paths, (o, i) => {
+							global.paths[i] = path.resolve(o);
+						});
+						return end();
+					}).catch(end);
+				} else {
+					end();
+				}
+			},
+			end => {
+				if (_.hasIn(this.opts, 'project')) {
+					global.paths.project = path.resolve(this.opts.project);
+				}
+				end();
+			}, end => {
+				this.loadProjectConfig().then(e => {
+					this.loadDeps();
+					end(null);
+				}).catch(end);
+			}
+		];
+
+		asynch.series(init_tasks, (err, data) => {
+			if (err) {
+				return !!done ? done(err) : q.reject(err);
+			}
+			return !!done ? done(null) : q.resolve();
+		});
+		return q.q;
 	}
 
 	serve() {
-		return new Promise((res, rej) => {
-			asynch.series([
-				done => {
-					this.loadConfig().then(e => {
-						this.loadDeps();
-						return done(null);
-					}).catch(err => {
-						return done(err);
+		const tasks = [
+			done => {
+				if (this.project.bs) {
+					const ip = require('ip');
+					const portscanner = require('portscanner');
+
+					let spinner = new Spinner(ch_loading('Starting Browser-sync %s'));
+					spinner.setSpinnerString(18);
+					spinner.start();
+
+					let this_ip = ip.address();
+					portscanner.findAPortNotInUse(3000, 3100, this_ip, (err, port) => {
+						this.bs_conf.proxy = {
+							target: this.project.proxy,
+							ws: true
+						};
+						this.bs_conf.host = this_ip;
+						this.bs_conf.port = port;
+						this.bs.init(this.bs_conf);
+						this.bs.emitter.on('init', () => {
+							deb('');
+							spinner.stop(true);
+							done();
+						});
 					});
-				},
-                done => {
-                    if (this.project.bs) {
-                        this.bs = require('browser-sync').create(this.project.name);
-                        const ip = require('ip');
-                        const portscanner = require('portscanner');
-
-                        let spinner = new Spinner('Starting Browser-sync %s'.cyan.bold);
-                        spinner.setSpinnerString(18);
-                        spinner.start();
-
-                        let this_ip = ip.address();
-                        portscanner.findAPortNotInUse(3000, 3100, this_ip, (err, port) => {
-                            this.bs_conf.proxy = {
-                                target: this.project.proxy,
-                                ws: true
-                            };
-                            this.bs_conf.host = this_ip;
-                            this.bs_conf.port = port;
-                            this.bs_process = this.bs.init(this.bs_conf);
-                            this.bs_process.emitter.on('init', () => {
-                                deb('');
-                                spinner.stop(true);
-                                done();
-                            });
-                        });
-                    } else {
-                        done();
-                    }
-                },
-                done => {
-                    if (this.project.server) {
-                        const exec = require('child_process').exec;
-                        let child = exec('npm start --color --ansi', {
-                            cwd: this.project.path,
-                            maxBuffer: 1024 * 2048,
-                            stdio: 'inherit'
-                        });
-                        child.stdout.on('data', function (data) {
-                            console.log(data);
-                        });
-                        done();
-                    } else {
-                        done();
-                    }
-                }
-            ], (err, data) => {
-                if (err) {
-                    return handleError(err);
-                }
-				deb('-- AION task runner initiated --'.green.bold);
+				} else {
+					done();
+				}
+			},
+			done => {
+				if (this.project.server) {
+					const exec = require('child_process').exec;
+					let child = exec('npm start --color --ansi', {
+						cwd: this.project.path,
+						maxBuffer: 1024 * 2048,
+						stdio: 'inherit'
+					});
+					child.stdout.on('data', function (data) {
+						console.log(data);
+					});
+					done();
+				} else {
+					done();
+				}
+			}
+		];
+		return new Promise((res, rej) => {
+			asynch.series(tasks, (err, data) => {
+				if (err) {
+					return handleError(err);
+				}
 				res();
 			});
 		});
 	}
 
 
-	loadConfig() {
+	loadProjectConfig() {
 		return new Promise((resolve, reject) => {
-			Aion.checkConfig().then(() => {
+			this.checkConfig().then(() => {
 				this.project = cleanRequire(paths.project + '/src/config.json');
 				this.bs_conf = cleanRequire(paths.configs + '/bs-config.js');
 				return resolve();
@@ -146,29 +186,30 @@ class Aion {
 	}
 
 	start() {
-		this.serve().then(() => {
+		this.init().then(() => {
+			this.bs = require('browser-sync').create(this.project.name);
 			this.watch();
-			this.watchSelf();
-		});
-
+			this.watchSelf().q.then(this.serve.bind(this));
+		}).catch(handleError);
 	}
 
 	stop() {
+		console.success('--   AION stopped   --');
 		_.forEach(this.builders, builder => {
 			this.stopWatch.call(builder);
 		});
 
-		let q = new Promise((res, rej) => {
+		return new Promise((res, rej) => {
 			if (this.project.bs && _.hasIn(this, 'bs.exit')) {
 				this.bs.exit();
+				this.bs = undefined;
 			}
 			if (this.project.server) {
-                res();
+				res();
 			} else {
 				res();
 			}
 		});
-		return q;
 	}
 
 	quit() {
@@ -181,37 +222,49 @@ class Aion {
 	}
 
 	build(type) {
-		if (_.indexOf(this.possible, type) >= 0) {
-			let builder = new this.Builders[type](this.project);
-			switch (type) {
-				case 'css':
-					builder.startLess();
-					builder.build();
-					break;
-				case 'js':
-					builder.buildAll();
-					break;
-				case 'img':
-					builder.build();
-					break;
-				case 'svg':
-					builder.buildAll();
-					break;
-				case 'font':
-					builder.build();
-					break;
+		return new Promise((resolve, reject) => {
+			if (_.indexOf(this.possible, type) >= 0) {
+				let builder = new this.Builders[type](this.project);
+				switch (type) {
+					case 'css':
+						builder.startLess();
+						builder.build().then(resolve);
+						break;
+					case 'js':
+						builder.buildAll().then(resolve);
+						break;
+					case 'img':
+						builder.build().then(resolve);
+						break;
+					case 'svg':
+						builder.buildAll().then(resolve);
+						break;
+					case 'font':
+						builder.build().then(resolve);
+						break;
+				}
+			} else if (_.isEmpty(type) || typeof (type) === 'object') {
+				let array = this.possible;
+				if (typeof (type) === 'object' && !_.isNull(type)) {
+					if (type.indexOf('all') < 0) {
+						array = type;
+					}
+				}
+				const build = (i) => {
+					setTimeout(() => {
+						if (i === array.length) {
+							return resolve();
+						}
+						return this.build(array[i]).then(build.bind(this, ++i));
+					}, 20);
+				};
+				build(0);
 			}
-		} else if (_.isEmpty(type) || type === 'all') {
-			_.forEach(this.possible, this.build.bind(this));
-		}
-	}
-
-	emit(event, data) {
-		this.emitter.emit(event, data);
+		});
 	}
 
 	watchSelf() {
-
+		const q = promise();
 		Promise.all(this.builders_q).then(e => {
 			let ready = true;
 			if (_.isUndefined(this.interface)) {
@@ -229,32 +282,12 @@ class Aion {
 					this.interface.pause();
 					switch (_.toLower(line)) {
 						case 's' || 'stop':
-                            this.stop();
-							const menu = require(paths.main + '/stopped-menu').bind(this);
-							menu().then(answers => {
-								//							deb(JSON.stringify(answers, null, '  '));
-								switch (answers.choice) {
-									case 'resume':
-										this.start();
-										this.interface.resume();
-										break;
-									case 'quit':
-										this.quit();
-										break;
-									case 'build':
-										_.forEach(answers.builders, this.build.bind(this));
-										this.interface.resume();
-										break;
-								}
-							});
+							this.stop();
+							this.showMenu();
 							break;
 						case 'rs' || 'restart':
 							this.stop().then(() => {
-								this.serve().then(() => {
-									this.watch();
-									this.watchSelf();
-									this.interface.resume();
-								});
+								this.start();
 							});
 							break;
 						case 'q' || 'quit':
@@ -262,11 +295,11 @@ class Aion {
 							break;
 						case 'h' || 'help':
 							let color = 'cyan';
-							console.log('type in the ' + 'string' [color] + ' and hit enter:');
-							console.log('s' [color] + ' or ' + 'stop' [color] + ' to stop(PAUSE) the builders from watching changes in files and show Aion menu');
-							console.log('rs' [color] + ' or ' + 'restart' [color] + ' to restart builders');
-							console.log('q' [color] + ' or ' + 'quit' [color] + ' to shutdown watchers and exit the process');
-							console.log('h' [color] + ' or ' + 'help' [color] + ' for list of command');
+							console.log('type in the ' + ch_loading('string') + ' and hit enter:');
+							console.log(ch_loading('s') + ' or ' + ch_loading('stop') + ' to stop(PAUSE) the builders from watching changes in files and show Aion menu');
+							console.log(ch_loading('rs') + ' or ' + ch_loading('restart') + ' to restart builders');
+							console.log(ch_loading('q') + ' or ' + ch_loading('quit') + ' to shutdown watchers and exit the process');
+							console.log(ch_loading('h') + ' or ' + ch_loading('help') + ' for list of command');
 							this.interface.resume();
 							break;
 						default:
@@ -280,13 +313,36 @@ class Aion {
 				this.interface.on('resume', () => {
 					ready = true;
 				});
+			} else {
+				this.interface.resume();
 			}
-			
-			console.log(' ');
-			console.log('--   AION ready   --'.green.bold);
-			console.log('-- Type in "s" to stop(PAUSE) watching, "h" for the list of all available commands --'.bold.yellow);
 
+			console.log(' ');
+			console.success('--   AION ready   --');
+			console.info('-- Type in "s" to stop(PAUSE) watching, "h" for the list of all available commands --');
+			q.resolve();
+		});
+		return q;
+	}
+
+	showMenu() {
+		const menu = require(paths.main + '/stopped-menu').bind(this);
+		menu().then(answers => {
+			switch (answers.choice) {
+				case 'resume':
+					this.start();
+					break;
+				case 'quit':
+					this.quit();
+					break;
+				case 'build':
+					this.build(answers.builders).then(() => {
+						this.showMenu();
+					});
+					break;
+			}
 		});
 	}
+
 }
 module.exports = Aion;

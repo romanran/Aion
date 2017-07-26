@@ -7,14 +7,15 @@ watcher_opts.ignored = paths.project + '/src/SVG/SYMBOLS/*.*';
 
 class SvgBuilder {
 
-	constructor() {
+	constructor(project) {
+		this.project = project;
 		this.opts = {
 			inline: true,
 		};
 		this.watchers = [];
-		this.q = new Promise((res,rej) => {
-            this.loaded = res;
-        });
+		this.q = new Promise((res, rej) => {
+			this.loaded = res;
+		});
 
 		let svgo_conf = {
 			plugins: [
@@ -37,26 +38,14 @@ class SvgBuilder {
 
 	}
 
-	minify(dest, err, data) {
-		if (handleError(err)) return 0;
-		try {
-			this.svgo.optimize(data, result => {
-				if (handleError(result.error)) return 0;
-				fs.writeFile(paths.project + '/dist/svg/' + dest, result.data, (err) => {
-					if (handleError(err)) return 0;
-					console.log((dest + ' file minified ✔').bold.green);
-				});
-			});
-		} catch (err) {
-			handleError(err);
-		}
-	}
-
 	watchAll() {
+		if (this.project.bs) {
+			this.bs = require('browser-sync').get(this.project.name);
+		}
 		const watcher = chokidar.watch(paths.project + '/src/SVG/**/*.svg', watcher_opts);
 		const symbols_watcher = chokidar.watch(paths.project + '/src/SVG/SYMBOLS/*.svg', symbol_watcher_opts);
 		watcher.on('ready', e => {
-			console.log('Watching SVG files...'.bold);
+			console.log(chalk.bold('Watching SVG files...'));
 			this.watchers.push(watcher);
 			this.loaded();
 		});
@@ -67,12 +56,19 @@ class SvgBuilder {
 		watcher.on('all', this.move.bind(this));
 	}
 
+	buildAll() {
+		this.done = promise();
+		this.buildSymbols();
+		this.move();
+		return this.done.q;
+	}
+
 	buildSymbols(e, where) {
+		console.log('  ---- SVG SYMBOLS build initialized ----   ');
 		if (where) {
 			where = where.replace(/\\/g, '/');
-			console.log((e.toUpperCase()).bold + ' in file ' + (where).bold);
+			console.log(chalk.bold(e.toUpperCase()) + ' in file ' + chalk.bold(where));
 		}
-		console.log('  ---- SVG SYMBOLS build initialized ----   '.bgWhite.black);
 
 		let sprites = svgstore(this.opts);
 		glob(paths.project + '/src/SVG/symbols/*.svg', (er, files) => {
@@ -81,21 +77,19 @@ class SvgBuilder {
 			});
 			//			fs.writeFile('../dist/svg/symbols.min.svg', sprites.toString());
 			this.minify('symbols.min.svg', null, sprites.toString());
+			if (!!this.bs) {
+				this.bs.reload();
+			}
 		});
 
 	}
 
-	buildAll() {
-		this.buildSymbols();
-		this.move();
-	}
-
 	move(e, where) {
-		console.log('  ---- SVG moving initialized ----   '.bgWhite.black);
-
 		glob(paths.project + '/src/SVG/**/*.svg', {
 			ignore: [paths.project + '/src/SVG/symbols/**/*.svg']
 		}, (er, files) => {
+			this.files_i = 0;
+			this.files_l = files.length;
 			files.forEach(file => {
 				let dest = path.parse(file);
 				fs.ensureDir(_.replace(dest.dir, 'src/SVG', 'dist/svg') + '/', err => {
@@ -104,6 +98,30 @@ class SvgBuilder {
 				});
 			});
 		});
+	}
+
+	minify(dest, err, data) {
+		this.files_i++;
+		if (this.files_i === this.files_l) {
+			if (!!this.done) {
+				this.done.resolve();
+			}
+			if (!!this.bs) {
+				this.bs.reload();
+			}
+		}
+		if (handleError(err)) return 0;
+		try {
+			this.svgo.optimize(data, result => {
+				if (handleError(result.error)) return 0;
+				fs.writeFile(paths.project + '/dist/svg/' + dest, result.data, (err) => {
+					if (handleError(err)) return 0;
+					console.success(dest + ' file minified ✔');
+				});
+			});
+		} catch (err) {
+			handleError(err);
+		}
 	}
 }
 
