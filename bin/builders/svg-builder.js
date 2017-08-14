@@ -57,14 +57,32 @@ class SvgBuilder {
 	}
 
 	buildAll() {
-		this.done = promise();
-		this.buildSymbols();
-		this.move();
-		return this.done.q;
+		const done = promise();
+		fs.remove(paths.project + '/dist/svg/**').then(() => {
+			let promises = [];
+			promises.push(this.move());
+			promises.push(this.buildSymbols());
+			Promise.all(promises).then(() => {
+				done.resolve();
+				if (!!this.bs) {
+					this.bs.reload();
+				}
+			}).catch(err => {
+				done.resolve();
+				return handleError(err);
+			});
+		})
+		.catch(err =>{
+			deb('fuck');
+			done.resolve();
+			return handleError(err);
+		});
+		return done.q;
 	}
 
 	buildSymbols(e, where) {
 		console.log('  ---- SVG SYMBOLS build initialized ----   ');
+		const q = promise();
 		if (where) {
 			where = where.replace(/\\/g, '/');
 			console.log(chalk.bold(e.toUpperCase()) + ' in file ' + chalk.bold(where));
@@ -75,53 +93,120 @@ class SvgBuilder {
 			files.forEach(file => {
 				sprites.add(path.basename(file, '.svg'), fs.readFileSync(file, 'utf8'));
 			});
-			//			fs.writeFile('../dist/svg/symbols.min.svg', sprites.toString());
-			this.minify('symbols.min.svg', null, sprites.toString());
-			if (!!this.bs) {
-				this.bs.reload();
-			}
+			this.minify(sprites.toString())
+				.then(this.save.bind(this, 'symbols.min.svg'))
+				.then(dest => {
+					console.success(dest + ' file minified ✔');
+					q.resolve();
+				}).catch(err =>{
+					handleError(err);
+					q.resolve(err);
+				});
 		});
-
+		return q.q;
 	}
 
 	move(e, where) {
-		glob(paths.project + '/src/SVG/**/*.svg', {
-			ignore: [paths.project + '/src/SVG/symbols/**/*.svg']
-		}, (er, files) => {
-			this.files_i = 0;
-			this.files_l = files.length;
-			files.forEach(file => {
-				let dest = path.parse(file);
-				fs.ensureDir(_.replace(dest.dir, 'src/SVG', 'dist/svg') + '/', err => {
-					if (handleError(err)) return 0;
-					fs.readFile(file, 'utf8', this.minify.bind(this, dest.base));
-				});
-			});
-		});
+		const q = promise();
+		asynch.waterfall(
+			[
+				done => {
+					glob(paths.project + '/src/SVG/**/*.svg', {
+						ignore: [paths.project + '/src/SVG/symbols/**/*.svg']
+					}, (err, files) => {
+						done(err, files);
+					});
+				},
+				(files, done) => {
+					let promises = [];
+					files.forEach(file => {
+						const file_q = promise();
+						promises.push(file_q.q);
+
+						this.handleFile(file)
+							.then(file_q.resolve)
+							.catch(err => {
+								console.error(file);
+								handleError(err);
+								file_q.resolve(err);
+							});
+					});
+					done(null, promises);
+				},
+				(promises, done) => {
+					Promise.all(promises)
+						.then(() => {
+							done(null);
+						}).catch(err =>{
+							done(err);
+						});
+				}
+			], (err, data) => {
+				if (handleError(err)) {
+					return q.resolve(err);
+				} else {
+					return q.resolve();
+				}
+			}
+		);
+		return q.q;
 	}
 
-	minify(dest, err, data) {
-		this.files_i++;
-		if (this.files_i === this.files_l) {
-			if (!!this.done) {
-				this.done.resolve();
-			}
-			if (!!this.bs) {
-				this.bs.reload();
-			}
-		}
-		if (handleError(err)) return 0;
-		try {
-			this.svgo.optimize(data, result => {
-				if (handleError(result.error)) return 0;
-				fs.writeFile(paths.project + '/dist/svg/' + dest, result.data, (err) => {
-					if (handleError(err)) return 0;
-					console.success(dest + ' file minified ✔');
+	handleFile(file) {
+		const dest = path.parse(file);
+		const q = promise();
+		asynch.waterfall([
+			done => {
+				fs.ensureDir(_.replace(dest.dir, 'src/SVG', 'dist/svg') + '/', err => {
+					done(err);
 				});
-			});
-		} catch (err) {
-			handleError(err);
-		}
+			},
+			done => {
+				fs.readFile(file, 'utf8', (err, data) => {
+					done(null, data);
+				});
+			},
+			(data, done) => {
+				this.minify(data)
+					.then(this.save.bind(this, dest.base))
+					.then(e => {
+						return done(null);
+					}).catch(done);
+
+			}
+		], (err, data) =>{
+			if (err) {
+				q.reject(err);
+			} else {
+				console.success(dest.base + ' file minified ✔');
+				q.resolve(dest.base);
+			}
+		});
+		return q.q;
+	}
+
+	minify(data) {
+		const q = promise();
+		this.svgo.optimize(data, result => {
+			if (result.error) {
+				q.reject(result.error);
+			} else {
+				q.resolve(result.data);
+			}
+		});
+		return q.q;
+	}
+
+	save(dest, data) {
+		const q = promise();
+		fs.writeFile(paths.project + '/dist/svg/' + dest, data, (err) => {
+			if (err) {
+				return q.reject(err);
+			} else {
+				q.resolve(dest);
+			}
+		});
+		return q.q;
 	}
 }
 

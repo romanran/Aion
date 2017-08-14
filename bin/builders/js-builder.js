@@ -29,6 +29,7 @@ class JsBuilder {
 	}
 
 	buildAll() {
+		console.log('  ---- JS build initialized ----  ');
 		this.done = promise();
 		let promises = [];
 		for (let file of this.files) {

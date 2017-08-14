@@ -29,11 +29,13 @@ class FontBuilder {
 
 	build() {
 		this.done = promise();
-		glob(paths.project + '/src/FONTS/**/*.*', (err, files) => {
-			this.files_i = 0;
-			this.files_l = files.length;
-			files.map(file => {
-				this.move('add', file);
+		fs.remove(paths.project + '/dist/fonts', () => {
+			glob(paths.project + '/src/FONTS/**/*.*', (err, files) => {
+				this.files_i = 0;
+				this.files_l = files.length;
+				files.map(file => {
+					this.move('add', file);
+				});
 			});
 		});
 		return this.done.q;
