@@ -48,6 +48,9 @@ class ImgBuilder{
 					this.bs.reload(paths.project + '/dist/img/*.*');
 				}
 				resolve();
+			}).catch(err => {
+				handleError(err);
+				reject(err);
 			});
 		});
 	}
