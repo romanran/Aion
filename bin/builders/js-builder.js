@@ -73,7 +73,7 @@ class JsBuilder {
 			console.log('  ---- JS build initialized ----  ');
 			console.log(ch_loading('Building libraries, it may take a while...'));
 			this.handleCompile(file).then(() => {
-				this.watchLibs();
+				this.watchLibs(paths.project + '/src/JSLIBS/main.js', 0, true);
 				if (!!this.bs) {
 					this.bs.reload();
 				}
