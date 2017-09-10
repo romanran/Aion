@@ -47,7 +47,7 @@ class Aion {
 		const init_tasks = [
 			end => {
 				if (_.hasIn(this.opts, 'config')) {
-					Aion.checkFile(this.opts.config).then(() =>{
+					Aion.checkFile(this.opts.config).then(() => {
 						let paths = require(path.resolve(this.opts.config));
 						_.forEach(paths, (o, i) => {
 							global.paths[i] = path.resolve(o);
@@ -63,7 +63,8 @@ class Aion {
 					global.paths.project = path.resolve(this.opts.project);
 				}
 				end();
-			}, end => {
+			},
+            end => {
 				this.loadProjectConfig().then(e => {
 					this.loadDeps();
 					end(null);
@@ -100,8 +101,11 @@ class Aion {
 						this.bs_conf.host = this_ip;
 						this.bs_conf.port = port;
 						this.bs.init(this.bs_conf);
-						this.bs.emitter.on('init', () => {
+						this.bs.emitter.on('init', (bs, err) => {
 							deb('');
+							if (err) {
+								handleError(err);
+							}
 							spinner.stop(true);
 							done();
 						});
@@ -187,7 +191,8 @@ class Aion {
 
 	start() {
 		this.init().then(() => {
-			this.bs = require('browser-sync').create(this.project.name);
+			const bs = cleanRequire('browser-sync');
+			this.bs = bs.create(this.project.name);
 			this.watch();
 			this.watchSelf().q.then(this.serve.bind(this));
 		}).catch(handleError);

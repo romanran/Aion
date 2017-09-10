@@ -17,13 +17,13 @@ class JsBuilder {
 		if (!_.hasIn(this.project, 'jsFiles')) {
 			this.project.jsFiles = ['main/main', 'wp-admin/wp-admin'];
 		}
-		for (let file of this.project.jsFiles) { 
-			file = path.parse(file); 
-			file = file.dir + '/' + file.name; 
-			file = `${paths.project}/src/JS/${file}.js`; 
-			this.files.push(file); 
-		} 
-		
+		for (let file of this.project.jsFiles) {
+			file = path.parse(file);
+			file = file.dir + '/' + file.name;
+			file = `${paths.project}/src/JS/${file}.js`;
+			this.files.push(file);
+		}
+
 		this.q = promise();
 		this.loaded = this.q.resolve;
 	}
@@ -62,7 +62,7 @@ class JsBuilder {
 	watchLibs(file, err, exists) {
 		if (!exists) {
 			this.no_libs = true;
-			return 0;	
+			return 0;
 		}
 		let libs_watcher = chokidar.watch(paths.project + '/src/JSLIBS/*.js', watcher_opts);
 		libs_watcher.on('ready', e => {
@@ -73,7 +73,7 @@ class JsBuilder {
 			console.log('  ---- JS build initialized ----  ');
 			console.log(ch_loading('Building libraries, it may take a while...'));
 			this.handleCompile(file).then(() => {
-				this.watchLibs();
+				this.watchLibs(paths.project + '/src/JSLIBS/main.js', 0, true);
 				if (!!this.bs) {
 					this.bs.reload();
 				}
@@ -83,7 +83,7 @@ class JsBuilder {
 	}
 
 	watch() {
-		if (this.project.bs && !this.bs) {
+		if (this.project.bs) {
 			this.bs = require('browser-sync').get(this.project.name);
 		}
 		let watcher = chokidar.watch([paths.project + '/src/JS/**/*.js'], watcher_opts);
@@ -97,7 +97,7 @@ class JsBuilder {
 		});
 
 		let promises = [];
-		
+
 		watcher.on('all', (e, where) => {
 			console.log('  ---- JS build initialized ----  ');
 			console.log(chalk.yellow(e) + ' in ' + chalk.bold(path.basename(where)) + ', starting build...');
@@ -106,6 +106,7 @@ class JsBuilder {
 			}
 			Promise.all(promises).then(e => {
 				if (!!this.bs) {
+					this.bs.resume();
 					this.bs.reload();
 				}
 				this.watch();
@@ -123,16 +124,16 @@ class JsBuilder {
 				}
 				this.compile(file)
 					.then(this.saveData.bind(this))
+					.then(resolve)
 					.catch(err => {
 						handleError(err);
 						resolve();
-					})
-					.then(resolve);
+					});
 			});
-		}); 
+		});
 	}
 
-	compile(file) {  
+	compile(file) {
 		const q = promise();
 		let data = '';
 		let filename = file.indexOf('JSLIBS') > -1 ? 'libs' : path.parse(file).name;
@@ -151,8 +152,12 @@ class JsBuilder {
 		});
 
 		const bundler = bify.bundle().on('error', err => {
-			this.handleBrowserifyError(err, file);
-			q.resolve();
+			if (err) {
+				this.handleBrowserifyError(err, err.filename);
+				q.resolve();
+			} else {
+				q.resolve();
+			}
 		});
 
 		bundler.on('data', (chunk) => {
