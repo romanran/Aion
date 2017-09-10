@@ -7,7 +7,6 @@
     "postinstall": "node bin/main/postinstall",
     "test": "test",
     "notify": "node-notifier",
-    "prestart": "npm i",
     "start": "node bin/operators/main-dev",
     "restart": "npm start",
     "build:all": "node bin/operators/build",
