@@ -9,9 +9,10 @@ const params = {};
 if (config_path) {
 	params.config = config_path;
 }
-if (project) {
-	project = project.replace(/\"/g, "");
+if (process.argv[2]) {
+	project = process.argv[2].replace(/\"/g, "");
 	params.project = project;
+	global.paths.project = path.resolve(project);
 }
 
 let aion = new Aion(params);
