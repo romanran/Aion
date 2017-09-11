@@ -17,12 +17,8 @@ if (project) {
 let aion = new Aion(params);
 let type = nodeFlag.get('build');
 
-aion.init(function(err){
-	if (err) {
-		handleError(err);
-	} else {
-		this.build(type).then(() =>{
-			console.info(type + ' build complete');
-		});
-	}
-}.bind(aion));
+aion.loadDeps();
+aion.project = {};
+aion.build(type).then(() =>{
+	console.info(type + ' build complete');
+});
