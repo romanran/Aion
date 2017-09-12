@@ -174,6 +174,9 @@ class JsBuilder {
 	}
 
 	saveData(result) {
+		if (!result) {
+			return 0;
+		}
 		const _promise = promise();
 		const name = result.filename;
 		let data = result.data;
@@ -198,6 +201,9 @@ class JsBuilder {
 	}
 
 	handleBrowserifyError(err, file) {
+		if (!file) {
+			file = '?';
+		}
 		let filename = path.parse(file).name;
 		if (!_.isUndefined(this.bs)) {
 			this.bs.notify(`<span style="color: red">Failed running browserify ${filename}</span>`);
