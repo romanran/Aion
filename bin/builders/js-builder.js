@@ -2,8 +2,9 @@ const watcher_opts = require(paths.configs + '/watcher');
 const babel = require('babel-core');
 const es2015 = require('babel-preset-es2015');
 const browserify = require('browserify');
-const UglifyJS = require('uglify-js'),
-	babelify = require('babelify');
+const babelify = require('babelify');
+const minifyStream = require('minify-stream');
+const pump = require('pump');
 
 class JsBuilder {
 
@@ -11,7 +12,6 @@ class JsBuilder {
 		this.project = project;
 		this.files = [];
 		this.watchers = [];
-		this.no_libs = false;
 		this.watch_i = 0;
 
 		if (!_.hasIn(this.project, 'jsFiles')) {
@@ -35,51 +35,23 @@ class JsBuilder {
 		for (let file of this.files) {
 			promises.push(this.handleCompile(file));
 		}
-		promises.push(this.handleCompile(paths.project + '/src/JSLIBS/main.js'));
 		Promise.all(promises).then(this.done.resolve);
 		return this.done.q;
 	}
 
 	watchAll() {
-		console.log('Caching project JS files...');
-		const file = paths.project + '/src/JSLIBS/main.js';
-		fs.pathExists(file, this.watchLibs.bind(this, file));
 		let promises = [];
 		const fileCheck = function (file, err, exists) {
 			if (!exists) {
 				_.pull(this.files, file);
 				return 1;
 			}
-			promises.push(this.compile(file));
 		};
 
 		for (let file of this.files) {
 			fs.pathExists(file, fileCheck.bind(this, file));
 		}
 		Promise.all(promises).then(this.watch.bind(this));
-	}
-
-	watchLibs(file, err, exists) {
-		if (!exists) {
-			this.no_libs = true;
-			return 0;
-		}
-		let libs_watcher = chokidar.watch(paths.project + '/src/JSLIBS/*.js', watcher_opts);
-		libs_watcher.on('ready', e => {
-			this.watchers.push(libs_watcher);
-			console.log('Watching JSLIBS files...');
-		});
-		libs_watcher.on('all', (e, where) => {
-			console.log('  ---- JS build initialized ----  ');
-			console.log(ch_loading('Building libraries, it may take a while...'));
-			this.handleCompile(file).then(() => {
-				this.watchLibs(paths.project + '/src/JSLIBS/main.js', 0, true);
-				if (!!this.bs) {
-					this.bs.reload();
-				}
-			});
-			libs_watcher.close();
-		});
 	}
 
 	watch() {
@@ -96,25 +68,29 @@ class JsBuilder {
 			this.watch_i++;
 		});
 
-		let promises = [];
 
-		watcher.on('all', (e, where) => {
-			console.log('  ---- JS build initialized ----  ');
-			console.log(chalk.yellow(e) + ' in ' + chalk.bold(path.basename(where)) + ', starting build...');
-			for (let file of this.files) {
-				promises.push(this.handleCompile(file));
-			}
-			Promise.all(promises).then(e => {
-				if (!!this.bs) {
-					this.bs.resume();
-					this.bs.reload();
-				}
-				this.watch();
-			});
-			watcher.close();
-			this.watchers.pop();
-		});
+		watcher.on('change', where => this.initBuild(where, watcher));
+		watcher.on('unlink', where => this.initBuild(where, watcher));
+		watcher.on('error', error => console.log(`Watcher error: ${error}`));
 	}
+
+	initBuild(where, watcher) {
+		let promises = [];
+        console.log('  ---- JS build initialized ----  ');
+        console.log(`${chalk.yellow('change')} change in ${chalk.bold(path.basename(where))}, starting build...`);
+        for (let file of this.files) {
+            promises.push(this.handleCompile(file));
+        }
+        Promise.all(promises).then(e => {
+            if (!!this.bs) {
+                this.bs.resume();
+                this.bs.reload();
+            }
+            this.watch();
+        });
+        watcher.close();
+        this.watchers.pop();
+    }
 
 	handleCompile(file) {
 		return new Promise((resolve, reject) => {
@@ -123,7 +99,6 @@ class JsBuilder {
 					return resolve();
 				}
 				this.compile(file)
-					.then(this.saveData.bind(this))
 					.then(resolve)
 					.catch(err => {
 						handleError(err);
@@ -134,73 +109,61 @@ class JsBuilder {
 	}
 
 	compile(file) {
-		const q = promise();
-		let data = '';
-		let filename = file.indexOf('JSLIBS') > -1 ? 'libs' : path.parse(file).name;
-		console.log(`Bundling required files for ${chalk.bold.yellowBright(filename)}...`);
-		console.time(`${filename}.js`);
+        const q = promise();
+        let filename = path.parse(file).name;
+        console.log(`Bundling required files for ${chalk.bold.yellowBright(filename)}...`);
+        console.time(`${filename}.js` + chalk.green('✔'));
+        const dest = `${paths.project}/dist/js/${filename}.js`;
+
 		let bify = browserify('', {
 			standalone: false,
 			detectGlobals: false,
 			noParse: false,
-		});
+            entry: true,
+            debug: true
+        });
 
 		bify.add(file);
 
-		bify.transform(babelify, {
+        bify.transform(babelify, {
 			presets: [es2015]
 		});
+        const handleAfter = (err) => {
+            if (err) {
+                this.handleBrowserifyError(err, filename);
+                return q.reject(err);
+            } else {
+                console.timeEnd(`${filename}.js` + chalk.green('✔'));
+                setTimeout(()=> {
+                    this.minify(dest, filename);
+                }, 1000);
+                return q.resolve();
+            }
+        };
 
-		const bundler = bify.bundle().on('error', err => {
-			if (err) {
-				this.handleBrowserifyError(err, err.filename);
-				q.resolve();
-			} else {
-				q.resolve();
-			}
-		});
+        pump(
+            bify.bundle(),
+            fs.createWriteStream(dest),
+            handleAfter
+        );
+        return q.q;
+    }
 
-		bundler.on('data', (chunk) => {
-			data += chunk.toString('utf8');
-		});
 
-		bundler.on('end', () => {
-			q.resolve({
-				data: data,
-				filename: filename
-			});
-		});
-		return q.q;
-	}
+    minify(src, filename) {
+        const dest = `${paths.project}/dist/js/${filename}.min.js`;
+        console.log(`Minifying and saving ${chalk.bold.yellowBright(filename)}...`);
+        pump(fs.createReadStream(src),
+            minifyStream({ sourceMap: false }),
+            fs.createWriteStream(dest),
+            done => {
+                console.log(chalk.bold.yellowBright(filename) + chalk.green('✔'));
+            }
+        );
 
-	saveData(result) {
-		if (!result) {
-			return 0;
-		}
-		const _promise = promise();
-		const name = result.filename;
-		let data = result.data;
-		console.log(`Minifying and saving ${chalk.bold.yellowBright(name)}...`);
-		const data_min = UglifyJS.minify(_.toString(data), {
-			fromString: true
-		});
+    }
 
-		const handleAfter = function (end, err) {
-			if (err) {
-				return _promise.reject(err);
-			} else if (end) {
-				console.log(`${name}.js` + chalk.green('✔'));
-				console.timeEnd(`${name}.js`);
-				return _promise.resolve();
-			}
-		};
-
-		fs.writeFile(paths.project + '/dist/js/' + name + '.js', data, 'utf8', handleAfter.bind(this, true));
-		fs.writeFile(paths.project + '/dist/js/' + name + '.min.js', data_min.code, 'utf8', handleAfter.bind(this, false));
-		return _promise.q;
-	}
-
-	handleBrowserifyError(err, file) {
+    handleBrowserifyError(err, file) {
 		if (!file) {
 			file = '?';
 		}
@@ -233,7 +196,6 @@ class JsBuilder {
 				title: 'Failed running browserify'
 			});
 		}
-
 	}
 
 }

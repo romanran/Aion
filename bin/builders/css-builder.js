@@ -39,6 +39,8 @@ if (_.hasIn(css_plugs, 'less')) {
 	plugins_list = _.union(plugins_list, css_plugs.less);
 }
 
+const LESScompiler = require('less');
+
 class LessBuilder {
 
 	constructor(project) {
@@ -62,8 +64,7 @@ class LessBuilder {
 
 	startLess() {
 		// load the plugins
-		this.compiler = require('less');
-		let plugin_loader = new this.compiler.PluginLoader(this.compiler);
+		let plugin_loader = new LESScompiler.PluginLoader(LESScompiler);
 		for (let i in plugins_list) {
 			if (_.isObject(plugins_list[i])) {
 				//if its already instantiated plugin object, not a string for loading
@@ -135,11 +136,11 @@ class LessBuilder {
 			return 0;
 		}
 		less_options.filename = path.resolve(file);
-		this.compiler
+		LESScompiler
 			.render(data, less_options)
-			.then(this.postProcess.bind(this, dest_file)) 
-			.then(this.save.bind(this, dest_file)) 
-			.then(this.fileFinished.bind(this)) 
+			.then(this.postProcess.bind(this, dest_file))
+			.then(this.save.bind(this, dest_file))
+			.then(this.fileFinished.bind(this))
 			.catch(err => {
 				this.fileFinished();
 				return this.lessError(err, dest_file);
@@ -155,27 +156,25 @@ class LessBuilder {
 				return resolve(output);
 			}
 			const postcss_opts = {
-				map: {
-					inline: false,
-					prev: output.map
-				}
+				map: false
 			};
-			postcss(postcss_plugins).process(output.css, postcss_opts)
-				.then(resolve).catch(reject);
+			postcss(postcss_plugins)
+                .process(output.css, postcss_opts)
+				.then(resolve)
+                .catch(reject);
 		});
 	}
 
 	save(dest_file, output) {
 		const q = promise();
-		output.css += '/*# sourceMappingURL=' + dest_file + '.css.map */';
 		if (output.map) {
-			fs.writeFileSync(paths.project + '/dist/css/' + dest_file + '.css.map', output.map);
+	    	output.css += '/*# sourceMappingURL=' + dest_file + '.css.map */';
+			fs.writeFile(paths.project + '/dist/css/' + dest_file + '.css.map', output.map, () => {});
 		}
 
 		fs.writeFile(paths.project + '/dist/css/' + dest_file + '.min.css', output.css, err => {
 			if (handleError(err)) {
-				q.resolve(err);
-				return 0;
+				return q.resolve(err);
 			}
 
 			console.log(dest_file + chalk.green(' ✔'));

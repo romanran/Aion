@@ -1,5 +1,5 @@
 module.exports = {
-    'files': ['!node_modules', '../**/*.php','!../**/includes', '!**/*.*', '../**/*.html'],
+    'files': ['../**/!node_modules', '../**/*.php','!../**/includes', '../**/*.html'],
     'server': false,
     'proxy': null,
     'notify': {
