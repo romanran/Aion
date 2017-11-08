@@ -12,7 +12,5 @@
     "strictMath": true,
     "strictUnits": false,
     "urlArgs": "",
-    "sourceMap": {
-        "sourceMapFileInline": false
-    }
+    "sourceMap": false
 }

@@ -21,5 +21,8 @@ let type = nodeFlag.get('build');
 aion.loadDeps();
 aion.project = {};
 aion.build(type).then(() =>{
+    if (type === null) {
+        type = 'Distributable files';
+    }
 	console.info(type + ' build complete');
 });
