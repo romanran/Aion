@@ -72,11 +72,11 @@
     "postcss-size": "^1.1.1",
     "postcss-sprites": "^4.1.1",
     "prompt": "^1.0.0",
+    "pump": "^1.0.2",
     "strip-debug": "^1.1.1",
     "svgmin": "^0.1.0",
     "svgo": "^0.7.2",
     "svgstore": "^2.0.2",
-    "uglify-js": "^2.7.5",
     "util": "^0.10.3",
     "valid-url": "^1.0.9"
   },
