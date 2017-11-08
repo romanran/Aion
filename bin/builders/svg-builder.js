@@ -1,7 +1,26 @@
 const svgstore = require('svgstore');
 const svgmin = require('svgo');
+const pump = require('pump');
 let symbol_watcher_opts = cleanRequire(paths.configs + '/watcher');
 let watcher_opts = cleanRequire(paths.configs + '/watcher');
+
+const svgo_conf = {
+    plugins: [
+        {
+            removeViewBox: false
+        },
+        {
+            removeUselessDefs: false
+        },
+        {
+            cleanupIDs: false
+        },
+        {
+            removeRasterImages: false
+        }
+    ]
+};
+const svgo = new svgmin(svgo_conf);
 
 watcher_opts.ignored = paths.project + '/src/SVG/SYMBOLS/*.*';
 
@@ -16,25 +35,6 @@ class SvgBuilder {
 		this.q = new Promise((res, rej) => {
 			this.loaded = res;
 		});
-
-		let svgo_conf = {
-			plugins: [
-				{
-					removeViewBox: false
-				},
-				{
-					removeUselessDefs: false
-				},
-				{
-					cleanupIDs: false
-				},
-				{
-					removeRasterImages: false
-				}
-			]
-		};
-
-		this.svgo = new svgmin(svgo_conf);
 
 	}
 
@@ -73,7 +73,6 @@ class SvgBuilder {
 			});
 		})
 		.catch(err =>{
-			deb('fuck');
 			done.resolve();
 			return handleError(err);
 		});
@@ -93,12 +92,12 @@ class SvgBuilder {
 			files.forEach(file => {
 				sprites.add(path.basename(file, '.svg'), fs.readFileSync(file, 'utf8'));
 			});
-			this.minify(sprites.toString())
+            svgo.optimize(sprites.toString())
 				.then(this.save.bind(this, 'symbols.min.svg'))
 				.then(dest => {
 					console.success(dest + ' file minified ✔');
 					q.resolve();
-				}).catch(err =>{
+				}).catch(err => {
 					handleError(err);
 					q.resolve(err);
 				});
@@ -109,45 +108,38 @@ class SvgBuilder {
 	move(e, where) {
 		const q = promise();
 		asynch.waterfall(
-			[
-				done => {
-					glob(paths.project + '/src/SVG/**/*.svg', {
-						ignore: [paths.project + '/src/SVG/symbols/**/*.svg']
-					}, (err, files) => {
-						done(err, files);
-					});
-				},
-				(files, done) => {
-					let promises = [];
-					files.forEach(file => {
-						const file_q = promise();
-						promises.push(file_q.q);
+		    [
+                done => {
+                    glob(paths.project + '/src/SVG/**/*.svg', {
+                        ignore: [paths.project + '/src/SVG/symbols/**/*.svg']
+                    }, (err, files) => {
+                        done(err, files);
+                    });
+                },
+                (files, done) => {
+                    let promises = [];
+                    files.forEach(file => {
+                        const file_q = promise();
+                        promises.push(file_q.q);
 
-						this.handleFile(file)
-							.then(file_q.resolve)
-							.catch(err => {
-								console.error(file);
-								handleError(err);
-								file_q.resolve(err);
-							});
-					});
-					done(null, promises);
-				},
-				(promises, done) => {
-					Promise.all(promises)
-						.then(() => {
-							done(null);
-						}).catch(err =>{
-							done(err);
-						});
-				}
-			], (err, data) => {
-				if (handleError(err)) {
-					return q.resolve(err);
-				} else {
-					return q.resolve();
-				}
-			}
+                        this.handleFile(file)
+                            .then(file_q.resolve)
+                            .catch(err => {
+                                console.error(file);
+                                handleError(err);
+                                file_q.resolve(err);
+                            });
+                    });
+                    done(null, promises);
+                },
+                (promises, done) => {
+                    Promise.all(promises)
+                        .then(() => done(null))
+                        .catch(err => done(err));
+                }
+            ], err => {
+                return handleError(err) ? q.resolve(err) : q.resolve();
+            }
 		);
 		return q.q;
 	}
@@ -162,19 +154,17 @@ class SvgBuilder {
 				});
 			},
 			done => {
-				fs.readFile(file, 'utf8', (err, data) => {
-					done(null, data);
+                fs.readFile(file, 'utf8', (err, data) => {
+                  return done(null, data);
 				});
 			},
 			(data, done) => {
-				this.minify(data)
-					.then(this.save.bind(this, dest.base))
-					.then(e => {
-						return done(null);
-					}).catch(done);
-
+                svgo.optimize(data)
+                    .then(result => this.save(dest.base, result))
+                    .then(() => done(null))
+                    .catch(done);
 			}
-		], (err, data) =>{
+		], err =>{
 			if (err) {
 				q.reject(err);
 			} else {
@@ -185,27 +175,13 @@ class SvgBuilder {
 		return q.q;
 	}
 
-	minify(data) {
-		const q = promise();
-		this.svgo.optimize(data, result => {
-			if (result.error) {
-				q.reject(result.error);
-			} else {
-				q.resolve(result.data);
-			}
-		});
-		return q.q;
-	}
+	save(dest, result) {
+        const q = promise();
+        if (result.error) {
+            return q.reject(result.error);
+        }
 
-	save(dest, data) {
-		const q = promise();
-		fs.writeFile(paths.project + '/dist/svg/' + dest, data, (err) => {
-			if (err) {
-				return q.reject(err);
-			} else {
-				q.resolve(dest);
-			}
-		});
+		fs.writeFile(paths.project + '/dist/svg/' + dest, result.data, err => err ? q.reject(err) : q.resolve(dest));
 		return q.q;
 	}
 }
