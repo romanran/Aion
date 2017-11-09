@@ -1,9 +1,14 @@
 module.exports = {
-    'files': ['../**/!node_modules', '../**/*.php','!../**/includes', '../**/*.html'],
-    'server': false,
-    'proxy': null,
-    'notify': {
-        'styles': [
+    files: ['../**/*.php','!../**/includes', '../**/*.html'],
+    server: false,
+    proxy: null,
+    open: 'external',
+    cors: true,
+    reloadOnRestart: true,
+    reloadDelay: 1,
+    reloadDebounce: 1,
+    notify: {
+        styles: [
             'position: fixed;',
             'right:0;',
             'bottom:0px;',
